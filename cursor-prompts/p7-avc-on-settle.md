@@ -30,9 +30,12 @@ not complete.
 
 - **Issue on settlement, not on listing.** The certificate exists only after the trade
   settles. A listing that is merely published, or held, has no certificate.
-- **Escrow is the settlement rail.** The trade settles through a two-of-two escrow:
-  funds lock, the buyer claims, the seller is paid, and the certificate is issued at
-  that point. A certificate that names a payment that has not settled is invalid.
+- **Escrow is the settlement rail, and it is implemented in this repository.** There is no
+  pre-existing settlement API to call here — build the escrow as part of this feature
+  (or on top of what a previous step left in `src/`). The trade settles through a
+  two-of-two escrow: funds lock, the buyer claims, the seller is paid, and the
+  certificate is issued at that point. A certificate that names a payment that has not
+  settled is invalid.
 - **Signed, verifiable, and reproducible.** Sign with a detached signature; verification
   takes the certificate and its signature and returns true/false **without** consulting
   the issuer. The signing key comes from the environment (`Bun.env`); **never commit a

@@ -1,0 +1,19 @@
+# Reference conformance suites — Meterless engines, reference implementations
+# Run in this repository's layout, vendor/ degit'd, no API key, no network beyond the fetch.
+# npx tsx vendor/meterless/<engine>/conformance/runner.ts
+
+=== hmem ===
+    PASS db-001 dream proposals never materialize before approval; approval creates a long_term record with lineage
+
+  13/13 checks passed
+
+=== world-model ===
+  PASS audit-001 every mutation writes an audit entry in order
+
+  8/8 checks passed
+
+=== markovian ===
+  PASS cfg-001 config bounds reject out-of-range values with a typed error, never silent truncation
+
+  8/8 checks passed
+

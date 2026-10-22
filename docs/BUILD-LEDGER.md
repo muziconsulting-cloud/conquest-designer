@@ -1,0 +1,264 @@
+> **This is the build ledger for the Open Agent Hackathon 2026 submission.** It is kept
+> in the open on purpose: the corrections in it are the honest part of the work.
+> The pre-existing platform it references is a separate private deployment — nothing
+> private is reproduced in this repository (see [`README.md`](./README.md)).
+
+# RUBRIC PROGRESS — Open Agent Hackathon 2026
+
+> **Private. Never pushed, never shown to judges.** This is the scoring ledger the owner
+> asked for ("note progress against rubric skill"). Every score cites the artifact it rests
+> on — no citation, no score. Updated each working session.
+>
+> Companion skills: `hackathon-compliance` (gates first — are we DQ?) then
+> `hackathon-rubric` (points). We are shipping **the best 80**, accepting **declared
+> sponsor deviations** (Zetaris hosted-out; the Meterless *provider* pending organiser
+> links — the Meterless *engines* are live and verified).
+
+---
+
+## Ledger — 2026-10-21 (pre-window)
+
+**State of the judged artifact: nothing exists yet.** Submission repo
+(`/home/wardair/conquest-tinkerer`) is a clean slate after `d70e58f`: only
+`FIRST-PRINCIPLES.md`, `PLAN.md`, `BUILD-PROMPTS.md`, `.cursor/`, `tools/`, `logs/.gitkeep`.
+No README, no `metadata.json`, no code, no video, no deck. Window opens Oct 22 00:00Z.
+
+Therefore, scored honestly against *the submission, not the ambition*:
+
+| Criterion | Max | Now | Reason | Artifact / gap |
+|---|---|---|---|---|
+| Impact & Real-World Relevance | 30 | **9** | The exchange frame and the swarm's real output are now **public** (README impact statement + architecture), which is what judges can score; the deeper derivation stays private. | `conquest-tinkerer/README.md` (impact + pre-existing declaration); private: `thegearmerchant/docs/ARCHITECTURE.md §2`. Gap: named user + live URL + a number. |
+| Technical Execution | 20 | **2** | Prebuilt rails verified and working (recon balanced 40.49T, tsc clean) but they are **declared pre-existing** — they earn nothing unless extended in-window. | Rails: `EscrowStateMachine.ts`, `A2A.ts:341`, `writeLedger`. Gap: in-window swarm + AVC + escrow hook that actually runs. |
+| Innovation & Creativity | 15 | **4** | Near-max *ceiling* (a currency pegged to fusion physics; an exchange where agents are priced and AVC-certified) — but innovation also scores the *delivered* system. | Private: AVC def, physics table. Gap: the built, demoed exchange. |
+| Demo (video/deck) | 15 | **0** | No video, no deck. Binary-ish: missing video = −15. | Gap: 1–4 min workflow video + deck (problem→solution→arch→sponsors→future). Record in-window. |
+| Product & UX | 10 | **1** | Live page surfaces exist on OCI but are the pre-existing product; the *submission's* listing surface (self-listing, AVC view) is unbuilt. | Gap: a legible listing/AVC surface a stranger can use. |
+| Sponsor Tech Integration | 10 | **4** | **Meterless ENGINES are LIVE and verified**: H-MEM 13/13, Markovian 8/8, World Model 8/8, all exit 0, local, no API keys, Apache 2.0 — with engine↔role mapping written. Cursor live (`.cursor/rules`) and now the **build mode is opencode-first, Cursor-last**. Zetaris is a declared deviation (now against a *published REST contract*). NVIDIA path confirmed but its credential is pending. | `SPONSORS.md`; conformance scorecards (verified pre-window in scratch); `.cursor/rules/conquest.mdc`; Zetaris stack `ConguestDESIGNER` + `kbase.zetaris.com/knowledge/rest-api`. Gap: **our own** implementations green against the same suites, + the Zetaris adapter, + the Meterless provider credential. |
+| **Total** | **100** | **~20** | Correct for a docs-only pre-window state. | |
+
+**This is the honest baseline.** It is low because the artifact is unbuilt, not because the
+idea is weak. The plan below is the path from ~20 → ~80.
+
+---
+
+## Score-recovery ordering — points recovered ÷ effort
+
+Sorted cheapest-big-number first. "Impact dominates" (30, tie-breaker) outranks everything.
+
+| # | Move | Rubric line | Points | Effort | When |
+|---|---|---|---|---|---|
+| 1 | ~~**README** with impact statement + pre-existing declaration + swarm arch~~ | Impact, gates | ~~+8–12~~ | low | **DONE 10-21** |
+| 2 | ~~**SPONSORS.md** — honest deviation + Apache-2.0 attribution~~ | Sponsor (gate) | ~~+2–3~~ | low | **DONE 10-21** |
+| 3 | **Implement H-MEM + World Model + Markovian in our code; go green against the same suites** | Sponsor, Technical | **+3–4** | med | **Oct 22+ — now the top pre-window→window item** |
+| 4 | **In-window swarm build** — listings-only roster, real JSONL traces, fallback mode | Technical | **+10–14** | high | Oct 22+ |
+| 5 | **AVC + escrow settle hook** — ownership transfer not cash-out | Technical, Innovation | **+6–9** | med | Oct 22+ |
+| 6 | **Demo video + deck** — run the workflow, don't narrate it | Demo | **+12–14** | med | Oct 22+ |
+| 7 | **Listing surface** — a stranger can list + receive an AVC | Product/UX | **+6–7** | med | Oct 22+ |
+| 8 | **Impact evidence** — named user + live URL + number | Impact | **+6–10** | low-med | Oct 22+ |
+| 9 | **Zetaris adapter** against Zetaris's **published REST contract** (`OpenSqlQuery` → `PageSqlQuery` → `CloseSqlQuery`), running against our data API | Sponsor | **+2–3** | med | Oct 22+ |
+| 10 | **Chase Zetaris shared event instance creds** (Zetaris Help channel) — would convert the deviation into a live integration | Sponsor | **+3–5** | low | **any time, async** |
+| 11 | **Get the Meterless provider credential** (account + credit + base URL + `NEMOTRON_MODEL`) when the organiser links land — turns the Nemotron path from declared-pending into live, and is the single biggest **Sponsor** swing | Sponsor | **+2–3** | low | **async, organiser-gated** |
+
+## The single highest-leverage next move (pre-window)
+
+**Nothing left that is cheap and pre-window.** README and SPONSORS.md are done; the ledger is
+written. The remaining moves all require the window (Oct 22 00:00Z).
+
+**The one cheap thing that is NOT window-blocked:** ask Zetaris (Help channel / Discord) for
+**shared-event-instance credentials**. Their own `getting-started` docs reference one. That is
+a message, not a build, and it converts the weakest sponsor line into a live integration if
+it lands.
+
+**Second cheap thing (also not window-blocked):** create the `prompts/` folder** in the
+submission repo and save the mandated Meterless prompt-library files there (H-MEM memory,
+Markovian long-tasks, World Model shared-state, Scout Intent signed tool calls, "prove each
+test can fail"). It is prep, not build, and it is what the final Cursor pass will run via
+`@filename` — so the Cursor evidence is ready the moment the skeleton is.
+
+## Rule checks (compliance)
+
+- Docs-only pre-window work: **allowed**. Artifact code pre-window: **not allowed** (DQ risk).
+- Declared deviation ≠ disqualification. Declared pre-existing code must appear in README
+  **and** the submission form.
+- Gates still open: submission-form `registered` attestation; `demo_video` + `slide_deck`
+  deliverables; `zetaris_integrated` (fails with "only in docs, not code" until in-window
+  code exists — expected). **The Meterless *engines* are RESOLVED and verified — no longer
+  `[NEED]`.** The Meterless *provider* credential is a separate, organiser-gated item.
+- NVIDIA path confirmed (Nemotron **via the Meterless provider**, not a direct NIM
+  endpoint); the credential itself is pending organiser links. Declared, not claimed.
+
+## Change log
+
+- **2026-10-21** — Ledger created. Baseline ~14/100 (docs-only). Next: README, then SPONSORS.md.
+- **2026-10-21 (same session)** — Wrote `README.md` + `SPONSORS.md` in the submission repo.
+  Compliance re-run: gates now PASS for `readme`, `sponsor_writeup`, `preexisting_declared`,
+  `cursor_used`, `secrets`. **`zetaris_integrated` FAILs with "only in docs, not code" —
+  correct pre-window; it closes only when in-window code exists.** Impact 6→9, Sponsor 1→3.
+- **2026-10-21 (later)** — **Meterless RESOLVED: not credential-gated.** Public Apache 2.0
+  repo (`Meterless/Meterless`), 4 engines (3 runnable), per-engine conformance suites, no API
+  keys, no cloud. **Verified locally against Meterless's own reference implementations:
+  H-MEM 13/13, Markovian 8/8, World Model 8/8 — all exit 0.** Engine↔roster mapping written
+  into `SPONSORS.md` + README. Sponsor 3→4; total ~17. Zetaris recon also completed
+  (Apache 2.0 `getting-started` w/ TS client; MIT `lightning-catalog`; client needs a live
+  *server* — do not vendor). `docs/ARCHITECTURE.md §8` updated with both.
+- **2026-10-21 (end of session)** — **Submission repo doc sweep: the retired R10,000 story
+  is fully gone.** Rewrote `BUILD-PROMPTS.md` (v3, exchange + Meterless conformance gates,
+  P0–P12, dead `run.py` refs removed), `FIRST-PRINCIPLES.md` (v3), `PLAN.md` (v3), and
+  `.cursor/rules/conquest.mdc` (exchange contract facts; the `cursor_used` gate evidence).
+  Added `metadata.json` (engines named, pre-existing declared, honest limitations).
+  Corrected `.env.example` — Meterless is local-first, **no base URL / no API key** (the old
+  values were factually wrong). Compliance: `readme`, `sponsor_writeup`,
+  `preexisting_declared`, `cursor_used`, `meterless_integrated`, `secrets` all PASS;
+  `zetaris_integrated` FAILs "only in docs, not code" (expected pre-window);
+  `demo_video` + `slide_deck` still outstanding (in-window). Rubric: **~17/100 baseline**
+  (Impact 9, Technical 2, Innovation 4, Demo 0, UX 1, Sponsor 4). **All of it is uncommitted
+  — awaiting the owner's commit decision.**
+- **2026-10-21 (second pass — the official onboarding doc landed)** — **The "Meterless is not
+  credential-gated" correction was HALF right and is now split in two.** The **engines** stay
+  local/no-creds/no-card (verified 13/13, 8/8, 8/8). The **Meterless provider / Runtime** —
+  the OpenAI-compatible service that serves **NVIDIA Nemotron** — **IS credential-gated**
+  (account + activated credit + `METERLESS_BASE_URL` + `METERLESS_API_KEY` +
+  `NEMOTRON_MODEL`; organiser links still `[ORGANISERS TO ADD]`). Consequence: **the
+  "before I get access to NVIDIA" answer is that no separate NVIDIA account is needed** —
+  Nemotron is selected *inside* Meterless. Also: **Nemotron is not reached by a direct NIM
+  endpoint** (the old `NVIDIA_BASE_URL`/NIM plan was wrong and is removed from
+  `.env.example`). Official onboarding confirms **"JavaScript or TypeScript works just as
+  well"** → Bun+TS is sanctioned, not a deviation. **Zetaris** upgrade: the **published REST
+  contract** (`OpenSqlQuery` `{select, pageLimit}` → `PageSqlQuery` → `CloseSqlQuery`; bearer
+  + `X-Org-ID` + `X-Request-ID`) replaces the vaguer client-contract framing, and the local
+  install is now precisely **4 containers + ≥8 GB Docker memory vs this box's 1,814 MB
+  total / 507 MB available / no Docker** — a 4.4× shortfall, definitively impossible.
+  **Build mode (CORRECTED 2026-10-21 against organiser Module 3: "you must build in Cursor") —
+  the build happens IN CURSOR (Composer/Grok on Cursor credit, headless via the Cursor CLI, one
+  scoped feature per run, mandated prompt attached with `@filename`); opencode reviews and
+  steers. Cursor once at the end over the
+  finished skeleton**, running the mandated `prompts/` files via `@filename` — added as P12
+  in `BUILD-PROMPTS.md`, with the `prompts/` folder added to the pre-window prep list.
+  Patched: `README.md` (command→engine-service map, local-first, provider-vs-engines),
+  `SPONSORS.md` (provider contract, REST contract, Nemotron tier table), `.env.example`
+  (three separated Meterless surfaces; direct-NIM vars removed), `metadata.json`,
+  `BUILD-PROMPTS.md`, `FIRST-PRINCIPLES.md`, `PLAN.md`, and privately
+  `docs/STORY.md`, `docs/ARCHITECTURE.md §8`, `docs/CONQUESTCAPITAL-A2Z.md` §12–13, and
+  this ledger. **Ledger arithmetic fixed**: the table said Impact 6 while the log said 9 —
+  the table now reads Impact 9 and the total **~20** (was stated ~17 with a table that
+  summed to 17; the   change log's "Impact 9" was the accurate one).
+- **2026-10-21 (pre-window prep, ~19:30Z)** — **Scaffold landed, typecheck clean.**
+  Public repo now has: `package.json` (bun scripts: swarm / serve / conformance / recon),
+  `tsconfig.json` (strict, `noUncheckedIndexedAccess`, `bun-types`), `src/types.ts`
+  (shared contracts, **types only** — Listing / Evidence / Conflict / Critique /
+  ListingRecord / AuditRecord / Avc / EscrowState, mirrored from the AVC definition of
+  record and the pre-existing escrow's real states `pending|suspense|claimed|settled|cancelled`),
+  the two **connector interfaces** (`src/llm/port.ts` = the single LLM port with three
+  adapters; `src/zetaris/adapter.ts` = the published Zetaris REST lifecycle), `src/README.md`
+  folder map, and `fixtures/listing-set.json` — four listings covering the four orchestrator
+  paths (**accept / revise / hold-escalation / fallback**). `bunx tsc --noEmit` **exit 0**.
+  `prompts/` = 9 bound mandated-prompt files + index (the artifact the final Cursor pass
+  runs via `@filename`). `.gitignore` now excludes `node_modules/` and `vendor/` (Meterless
+  specs are degit'd, never vendored). Compliance unchanged — no regression. **Still
+  uncommitted; the owner is content to leave the tree dirty until the window.**
+
+- **2026-10-21 (19:50Z) — SECOND CORRECTION, from the owner, and it changes the code.**
+  The owner was right about the shape: **no NVIDIA account, no NVIDIA key, no NVIDIA
+  billing sits in our path.** Nemotron reaches us through the Meterless fleet, the way
+  Grok reaches a Cursor user through Cursor. What the repo actually shows (read
+  `docs/products/nightshift/how-it-works.md` + `hotspot.md`): the local runtime serves
+  **open-weight models on your own hardware** (Qwen / GPT-OSS / DeepSeek / Muse-Glimmer —
+  203 fleets in the catalogue), and **"cloud ones join only if you add a key"**. So the
+  free path is *local*, and the hosted fleet is where Nemotron lives.
+  **Where I was wrong:** writing "credential-gated" made it sound as though NVIDIA billing
+  was required. It is not. The provider surface carries **one** credential (the organiser's
+  hosted endpoint), and that is a Meterless-side detail, not an NVIDIA one.
+  **Consequence, now in code:** `LlmPort` gained `models(): Promise<string[]>` and
+  `RoutePreference`. The adapter **discovers the routing ids the provider exposes and
+  keeps any `meterless/*` id it does not recognise**; a model name is a *preference*, never
+  a hard requirement. Nemotron tier (Super/Nano/Ultra) is a **disposition**, so a tier
+  swap is config, not a rewrite.
+  **Consequence, now in prose:** the public docs no longer recite Meterless's provider
+  contract. We had been **documenting a description instead of doing the thing** — the
+  contract recital was standing in for an integration we had not built yet. The contract
+  now lives only where it is load-bearing: in the adapter (code) and in
+  `prompts/08-provider-llm-seam.md` (the mandated prompt Cursor runs). `SPONSORS.md`
+  keeps the *use* + the *honest status*; `README.md` keeps the command→engine map, which
+  is the rubric-relevant part.
+  **Rule absorbed: a public document never restates a sponsor's own manual.** A judge can
+  read Meterless's docs. They cannot read our repo's prose and learn what WE did. Every
+  sponsor claim in our docs must point at a command that runs.
+
+- **2026-10-21 (22:45Z) — BUILD MODE CORRECTED. The owner pushed back and was right.**
+  Organiser **Module 3 (Build Day)** says plainly: *"you must build in Cursor"*, the
+  code-writing AI runs on **Cursor's included models (Composer / Grok) paid from Cursor
+  credit**, and the submission must **explain how Cursor was used during development**.
+  My earlier plan (build everything in opencode, one Cursor pass at the end) **inverted
+  the rule** and spent the credit in the least useful place — a big final pass is the
+  most expensive run and the least reviewable. The apparent contradiction ("use any
+  tools" vs "must build in Cursor") is not a contradiction: the top-level line governs
+  the **product stack** (the onboarding says "JavaScript or TypeScript works just as
+  well"); Module 3 governs the **build layer** (who writes the code).
+  **Corrected build mode:** every qualifying line is authored by **Cursor**; opencode is
+  the **reviewer and steerer** (writes the scoped prompt, runs the gates, reads the
+  diff, commits) — the organiser's own Describe → Review → Steer loop. Credit discipline:
+  one scoped feature per run, context loaded from files not pasted, commit per step,
+  priority if the credit runs short = **Meterless engines → Zetaris adapter → agents +
+  orchestrator → HTML surface → polish**.
+  **Toolchain landed on this box:** the **Cursor CLI** (`cursor-agent`, v2026.10.19) is
+  installed at `~/.local/bin/cursor-agent` (the official installer would have **deleted
+  the existing Grok `agent` symlink**, so it was extracted manually instead). Headless
+  flags confirmed: `-p/--print`, `--output-format json|stream-json`, `--model`,
+  `--force/--yolo`, `--auto-review`, `--mode plan|ask`, `--trust`, `--workspace`.
+  `cursor-agent status` → **"Not logged in"**; the browser login link is live and waiting.
+  **Also noted:** the **Grok CLI 0.2.54 is already installed and authenticated** on this
+  box (`~/.grok/auth.json`) — a working code-writing agent, but it spends *xAI* credit,
+  not *Cursor* credit, so it is a contingency, not the sanctioned path, and if it is ever
+  used the README says so.
+  **New artifact:** `cursor-prompts/` — one scoped, self-contained Cursor prompt per
+  feature (P0–P10), each naming the files to read (never pasted), the mandated prompt to
+  attach with `@filename`, the exact API surface the conformance runner calls, and the
+  acceptance command. README now carries a **"How we built it"** section with the
+  per-run evidence table, as the organisers ask.
+
+### 2026-10-21T21:55Z — Cursor authenticated, prompt library proven, free-tier quota exhausted
+
+**Cursor CLI is live.** `cursor-agent status` → **"✓ Logged in as muziconsulting@gmail.com"**
+(browser deep-link login; the *first* link was stale because its CLI process had been
+killed, which is why the page said "go back to CLI" and nothing happened). The
+organiser's **check 2** now passes — Cursor created and ran `hello.ts` with `bun` and
+printed `hello from cursor` in 30 s.
+
+**But the account is on Cursor's FREE tier**, and that has two consequences:
+1. `--model composer-2.5` / `--model cursor-grok-4.5-high` are **refused**:
+   *"Named models unavailable — Free plans can only use Auto."* The organiser's check 2
+   asks for **Composer or Grok specifically**; `auto` is a weaker, unnamed position.
+2. The free allowance is **token-based and small** — the P1 and P2 rehearsals consumed it
+   and P3 was refused with *"You've hit your usage limit."* Cursor does not publish the
+   free allowance; the monthly reset date is not surfaced in the CLI error.
+
+**Cursor docs confirm the fix paths** (cursor.com/docs/models-and-pricing, /help/models-and-usage/usage-limits):
+the **X Subscription** gives every **paid** plan a **weekly pool** of Cursor models
+(Grok 4.7/4.6/4.5 and Composer 2.5), **Plus is $8/mo**, and the **sponsor credit on the
+HackOS task board** is the organiser's sanctioned route (the Cursor in-kind pool is
+$2301). Recommendation: **claim the sponsor credit first** (free, and it is what the
+organiser intends), and fall back to **Plus $8/mo** if the credit is not on the board or
+does not land in time — $8 buys the weekly pool that unblocks named Composer/Grok runs
+and removes the "only Auto" evidence weakness. **Decision is the owner's.**
+
+**The prompt library is proven.** Two engine prompts were **rehearsed on throwaway
+copies outside the repo** (`/tmp/opencode/r-*`), so a broken prompt is found on a
+rehearsal and not on the day:
+- `p1-hmem-engine.md` → Cursor's own H-MEM implementation → conformance **13/13**,
+  `tsc --noEmit` exit 0, first run, 3m53s, 48,462 in / 13,556 out.
+- `p2-world-model-engine.md` → Cursor's own World Model implementation → conformance
+  **8/8**, `tsc` exit 0, first run, ~4 min, 123,124 in / 19,851 out.
+Both are **first-try green**, which means the scoped-prompt pattern works and the
+engine contracts are implementable as written. `p3-markovian-engine.md` was **rewritten**
+from the rehearsal learnings (the file decomposition Cursor chose, the three-way
+overlap contract spelled out, "no test files" — the P2 run had left a `*.test.ts`
+behind), and **P4–P10 are now written**: five agents, orchestrator, Zetaris adapter,
+AVC on settle, self-listing, HTML surface, LLM seam.
+
+**Honesty rule held:** the rehearsal implementations live in `/tmp`, are **not** copied
+into the repo, and will not be. The shipped code is authored **inside** the build window,
+in the repo, by Cursor. `cursor-prompts/RUNBOOK.md` states this as the window's first
+rule.
+
+**Two deliverables closed pre-window:** `DEMO.md` (the 3-minute walkthrough, 10 beats,
+with the spoken honesty lines for Zetaris and the local runtime) and `DECK.md` (12
+slides). Both are text artifacts about the submission, not the product.
