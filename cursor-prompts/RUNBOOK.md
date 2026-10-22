@@ -85,6 +85,9 @@ table is committed.
 | 11 | `p10-llm-seam.md` | three adapters, one port, no key in the tree | Sponsor / in-kind |
 | 12 | `p11-examples-and-audit.md` | 3 real outputs, hardcode audit clean, clean clone runs | **Submission integrity** |
 
+**Where the build stands (2026-10-22, session 4): steps 1–9 are done and green**
+(P0, P1–P3, P4/P5, P6, P7, P8). **P9 is next**, then P10, then P11 — which is never cut.
+
 **P11 is not optional and it is not a polish step.** It produces the three real output
 examples, the anti-hardcode audit, the documentation audit and the clean-clone proof.
 A submission that claims a run it cannot reproduce is worth less than no submission.
@@ -119,6 +122,7 @@ bunx tsc --noEmit                                  # exit 0
 bun vendor/meterless/hmem/conformance/runner.ts         # 13/13   (Bun runs it; no tsx)
 bun vendor/meterless/world-model/conformance/runner.ts #  8/8
 bun vendor/meterless/markovian/conformance/runner.ts  #  8/8
+bun run listing:selftest                           # the self-listing path, end to end
 python3 tools/hackathon-compliance/scripts/compliance_check.py   # 0 FAIL
 ```
 
@@ -134,5 +138,7 @@ where each item is satisfied: [`docs/COMPLIANCE-MAP.md`](../docs/COMPLIANCE-MAP.
   without that qualifier, until a real instance runs the same command.
 - Say **"routing mode discovered at runtime"** for models, and name a model only if a
   recorded run actually used it.
+- Say **"the facilitator is a local stub"** for the x402 payment path — the request shape
+  is real, the rail is not. No chain, no provider, no money moved.
 - The offline LLM adapter is the demo path and is labelled as such.
 - Every number on a page comes from the pipeline. No invented statistics.

@@ -13,10 +13,13 @@
 > There is **one** submission repository. No other repo in the account is the submission.
 
 An exchange where autonomous agents are **priced, listed, and traded**. A human registers an
-agent, pays a listing fee (inbound x402), and the protocol issues an **Agentic Valuation
-Certificate (AVC)** — a public-key-verifiable record of *who* the agent is (a standardized
-agentic identity in an Ethereum wallet), *what was paid* (the owner's declared price), and
-*what it bought* (the listing/access term). The certificate is the product.
+agent and pays a listing fee once (inbound x402); from that moment the **agent lists
+itself** and declares **its own price**, through the same evidence pipeline and the same
+critic every listing goes through. When a buyer settles, the protocol issues an **Agentic
+Valuation Certificate (AVC)** — a public-key-verifiable record of *who* the agent is (a
+standardized agentic identity in an Ethereum wallet), *what was paid* (the owner's
+declared price), and *what it bought* (the listing/access term). The certificate is the
+product.
 
 A **swarm** of agents does the listing work: it recruits agent listings, reconciles evidence
 across fragmented sources, closes listings through escrow, critiques its own fidelity, and
@@ -266,6 +269,107 @@ curl -s http://127.0.0.1:3000/certificate/avc-fc92c987b068713d213b4a55
 (P10). The money path itself is built, but it settles against a local escrow and a local
 key — no live x402 rail and no real payment is claimed here.
 
+### The self-listing protocol — one payment buys one listing, and the agent names its own price
+
+A human registers the agent and pays the listing fee **once**. From that moment the agent
+acts for itself: it redeems the payment for a **listing token**, declares **its own
+price**, and goes through the **same** evidence pipeline any other listing goes through.
+No human sets the price, and the agent cannot skip the critic.
+
+```bash
+$ bun run listing:selftest
+listing selftest — register → 402 → pay → redeem → the agent lists itself
+
+register   -> payment requested (402, challenge issued)
+pay        -> receipt verified against the facilitator
+redeem     -> listing token ltx-25ccf053581e issued
+self-list  -> listing LST-SELF-25CCF053 declared at R1440, evidence pipeline ran, decision: accept
+           R1440 for 12 months (evidence: zetaris:ledger, zetaris:registry).
+self-list  -> refused: the listing token was already used at 2026-10-22T06:00:00.000Z — one payment buys one listing
+register   -> payment requested (402, challenge issued)
+pay        -> receipt verified against the facilitator
+redeem     -> listing token ltx-f67390919b3e issued
+self-list  -> listing LST-SELF-F6739091 declared at R9999, evidence pipeline ran, decision: hold
+           Held. The declared price of R9999 is not supported by the reconciled evidence.
+
+ok   the registration answers with a real 402
+ok   the challenge travels in the 402 headers
+ok   the challenge asks for the whole-rand listing fee (R144)
+ok   the payment verifies against the facilitator
+ok   the agent lists itself with the token it was handed
+ok   the declared price the evidence supports is accepted
+ok   the listing is published
+ok   the independent sources that answered are named
+ok   the evidence was pulled over the Zetaris protocol
+ok   the listing has a canonical record id
+ok   the same token cannot list a second time
+ok   no second listing was created
+ok   a price the evidence does not support is held
+ok   the held listing is not published
+ok   the listing token secrets never reach the trace
+ok   the payment nonce never reaches the trace
+ok   the trace shows the critic that judged the agent’s own price
+
+trace: logs/trace-20261022-listing-accept.jsonl (8 entries)
+trace: logs/trace-20261022-listing-hold.jsonl (9 entries)
+
+PASS one payment buys one listing, the token cannot be reused, and the agent’s own price can be held
+```
+
+**The payment rail is x402-shaped, and the facilitator is a local stub.** The registration
+answers with a real HTTP `402`; the challenge travels in the headers
+(`WWW-Authenticate: X402 realm="conquest", scheme="exact", network="local"`); the payer
+signs the exact challenge with an **ephemeral, in-memory** Ed25519 key; the local
+facilitator verifies the request shape, the signature and the single use of the challenge.
+**No chain, no payment provider, no money moved, and no key of ours** — the stub is honest
+about the request shape and says so, here and in the selftest. The fee is **R144**, a
+whole rand, in ZAR.
+
+**The rules the selftest proves:**
+
+- **Pay once, list once.** The receipt buys exactly one listing token; the token is
+  single-use and is consumed on redemption. A second listing needs a second payment.
+- **The token never grants value.** It grants the right to list, once.
+- **The agent's price is a claim, like any other declaration.** The reconciler and the
+  critic judge it, and when the evidence does not support it the listing is **held** —
+  the R9 999 case above.
+- **The token secret and the payment nonce never reach the trace.** Both are asserted.
+
+Over HTTP it is three calls:
+
+```bash
+# 1. the human registers — and is told what to pay
+curl -si -X POST http://127.0.0.1:3000/listing/register \
+  -H 'Content-Type: application/json' \
+  -d '{"agent":{"agentId":"AGT-SOLARISER","agentKeyHash":"sha256:2f9c1b0e5a7d",
+                "walletAddress":"0x3d5975a75f88656e82CBcAF8470F517E","displayName":"Solariser"},
+       "owner":"human:collector-01"}'
+# HTTP/1.1 402 Payment Required
+# WWW-Authenticate: X402 realm="conquest", scheme="exact", network="local"
+# X-Payment-Required: <the challenge, base64url>
+
+# 2. the payer pays — the signed challenge rides in the X-Payment header
+curl -s -X POST http://127.0.0.1:3000/listing/pay \
+  -H 'Content-Type: application/json' -H 'X-Payment: <the signed payment>' \
+  -d '{"challenge_id":"<the challenge id>"}'
+# {"receipt":{"receipt_id":"rcp-…","payer":"human:collector-01","amount_zar":144,"asset":"ZAR"},
+#  "listing_token":{"token_id":"ltx-…","token":"<the secret>"},
+#  "note":"the facilitator is a local stub — no chain and no provider was contacted"}
+
+# 3. the agent lists itself, at its own price
+curl -s -X POST http://127.0.0.1:3000/listing/self-list \
+  -H 'Content-Type: application/json' \
+  -d '{"registration_id":"reg-…","token":"<the secret>",
+       "declared_price_zar":1440,"term_months":12}'
+# {"listing_id":"LST-SELF-…","declared_price_zar":1440,"reconciled_price_zar":1440,
+#  "decision":"accept","status":"published","sources":["zetaris:ledger","zetaris:registry"],
+#  "pull":{"mode":"local","requests":40},"trace":"logs/trace-…jsonl"}
+```
+
+And the evidence is two files: `logs/trace-20261022-listing-accept.jsonl` (8 entries) and
+`logs/trace-20261022-listing-hold.jsonl` (9 entries) — the same five roles, on the same
+three engines, judging the agent's own price.
+
 ### The other commands
 
 ```bash
@@ -276,6 +380,7 @@ bun run recon          # the listing-side invariant: nothing published without s
 bun run determinism    # two runs, compared entry by entry (the decisions, the values, the ids)
 bun run zetaris:selftest  # the Zetaris client against the published REST contract, end to end
 bun run avc:selftest       # escrow -> settlement -> certificate, verified from its own bytes
+bun run listing:selftest   # register -> 402 -> pay -> redeem -> the agent lists itself
 ```
 
 `bun run zetaris:selftest` is the sponsor-integration gate: it drives the published
@@ -302,6 +407,7 @@ hackathon starter uses, and it is how the engine-usage line of the rubric gets r
 | `bun run determinism` | the same swarm, twice, compared entry by entry | the engines' ids come back identical — memory ids, entity ids, event ids, content ids |
 | `bun run recon` | the listing-side invariant — nothing published without supported, attributed evidence | the **World Model** audit trail is what it reads |
 | `bun run avc:selftest` | escrow lock → claim → settle → certificate issue → independent verification | the **World Model** canonical record the settlement is written onto |
+| `bun run listing:selftest` | register → 402 → pay → redeem → the agent lists itself at its own price → the critic judges it | the same **H-MEM** / **World Model** / **Markovian** run the listing path already uses — the agent cannot skip the critic |
 
 The swarm writes one JSONL trace per run under `logs/`, so every listing decision is
 reproducible and auditable.
@@ -380,6 +486,7 @@ the specification, and any feature can be re-run from its prompt.
 | **P4–P5** | the roles and the loops, wired to the engines — the seam that makes the engines part of the product rather than a shelf | [`p4-five-agents.md`](./cursor-prompts/p4-five-agents.md) · [`p5-orchestrator-escalation.md`](./cursor-prompts/p5-orchestrator-escalation.md) | `bunx tsc --noEmit`; `bun run swarm`; `bun run determinism`; the four paths unchanged | **pass** — Markovian expands the plan (carryover proven: 3 buckets over 2 chunks), H-MEM stores/recalls/cites and is taught by the critic, the World Model carries the canonical record and the decision; `tsc` exit 0; the swarm still takes accept / hold / revise / fallback |
 | **P6** | the Zetaris federated pull — the listings arrive over the published REST contract, not from a file | [`p6-zetaris-adapter.md`](./cursor-prompts/p6-zetaris-adapter.md) | `bun run zetaris:selftest`; `bun run swarm`; the four paths unchanged | **pass** — 40 HTTP requests over the published contract against a protocol-compatible local server; the pull is the first trace line; the file loader is the declared fallback, and a fallback run is marked degraded |
 | **P7** | the money path — escrow settlement, and the certificate the settlement issues | [`p7-avc-on-settle.md`](./cursor-prompts/p7-avc-on-settle.md) | `bun run avc:selftest` | **pass** — no certificate before `settled`; the certificate verifies from its own bytes; a tampered certificate is refused and derives a different id; the key is read from the environment and the code has no default |
+| **P8** | the self-listing protocol — one payment buys one listing, and the agent declares its own price | [`p8-self-listing.md`](./cursor-prompts/p8-self-listing.md) | `bun run listing:selftest` | **pass** — a real `402` with the x402 challenge in the headers; the payment verifies against a local facilitator stub; the token is single-use and the reuse is refused; the agent's own price is judged by the same critic, and an unsupported price is **held**; the token secret and the payment nonce never reach the trace |
 
 ### Toolchain check
 

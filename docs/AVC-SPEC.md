@@ -98,6 +98,13 @@ flow agentic end to end:
 The listing token is **single-use**: one payment buys one listing, and the token is
 consumed on redemption. A second listing needs a second payment.
 
+**As built (`src/listing/`):** the registration answers a real HTTP `402` with the x402
+challenge in the headers; the payment is verified against a **local facilitator stub** —
+the request shape and the Ed25519 signature are checked in process, with **no chain, no
+payment provider and no money moved**; the listing fee is **R144**, a whole rand, in ZAR;
+and the agent's declared price goes through the same evidence pipeline as any other
+listing, so the critic can hold it.
+
 ## 7 · The certificate is verifiable on its own
 
 - It is **signed**, and verification takes the certificate and its signature and returns

@@ -67,11 +67,24 @@ run Nemotron unless a recorded run names the routing id.**
 | The key comes from the environment, and there is no default | `AVC_PRIVATE_KEY` / `AVC_PUBLIC_KEY` in `Bun.env` (`.env.example` documents both). The library throws when the key is missing; the selftest generates a **throwaway in-memory keypair** and says so. No key is committed, logged or written to disk by the code. |
 | What is **not** claimed | There is no live x402 payment rail yet (the payment reference is recorded, the rail itself is not), no UI (P9), and the settlement is a local in-process escrow. |
 
+### The self-listing protocol (P8)
+
+| Item | Where |
+|---|---|
+| A human pays once, and the agent then lists itself | `src/listing/` — `register.ts` (the registration and the `402`), `payment.ts` (the x402-shaped challenge and the verify step), `token.ts` (the listing token), `self-list.ts` (the agent's own listing path). Over HTTP: `POST /listing/register`, `POST /listing/pay`, `POST /listing/self-list`. |
+| The payment is a real request, not a boolean | The registration answers `402` with the challenge in `WWW-Authenticate: X402 …` and `X-Payment-Required`; the payer signs the exact challenge with an ephemeral in-memory Ed25519 key; the facilitator verifies the request shape, the signature and the single use of the challenge. The fee is **R144**, a whole rand, in ZAR (`decimals: 0`). |
+| **The facilitator is a local stub — stated plainly** | `src/listing/payment.ts` (`LocalFacilitator`) verifies **in process**: no chain, no payment provider, no network, no money moved, no key of ours, no credential. The README says so in the section that shows the path, and the `POST /listing/pay` response carries `"note": "the facilitator is a local stub — no chain and no provider was contacted"`. There is **no live x402 rail** and no claim of one. |
+| Pay once, list once | The receipt buys exactly one listing token; the token is single-use and is consumed on redemption. `bun run listing:selftest` asserts the reuse is refused and that no second listing was created. |
+| The token never grants value | It grants the right to list, once — it carries no balance, no ownership and no claim on the certificate. |
+| The agent's own price is a claim, and the critic still judges it | `src/listing/self-list.ts` runs the agent's declaration through the **ordinary** pipeline (`runListing`) with `declaredBy: 'agent'`; the agent's own declaration enters the reconciliation as the `owner-declaration` claim. An unsupported price is **held** — `logs/trace-20261022-listing-hold.jsonl` (9 entries) is the evidence. |
+| No secret reaches the trace | The selftest asserts that the listing-token secret and the payment nonce never appear in either trace file. |
+| The gate that proves it | `bun run listing:selftest` — exit 0, the whole path printed, the reuse refused, the hold shown, and the trace-file counts reported. |
+
 ### Logs
 
 | Item | Where |
 |---|---|
-| Written to `logs/` and stdout | `src/tracer.ts` — one JSONL line per agent step, `logs/<runId>.jsonl`. The four captured runs are committed (`logs/trace-20261022-001..004.jsonl`), so a judge can read the traces without running anything. |
+| Written to `logs/` and stdout | `src/tracer.ts` — one JSONL line per agent step, `logs/<runId>.jsonl`. The four captured runs are committed (`logs/trace-20261022-001..004.jsonl`), plus the two self-listing runs (`logs/trace-20261022-listing-accept.jsonl`, 8 entries, and `logs/trace-20261022-listing-hold.jsonl`, 9 entries) — so a judge can read the traces without running anything. |
 | Show agent names, actions, handoffs and statuses | Each line carries `timestamp`, `trace_id`, `agent_name`, `action`, `input_summary`, `output_summary`, `target_agent`, `confidence`, `retry_count`, `status` **alongside** the internal `AuditRecord` fields. `target_agent` is set on every handoff. |
 | Tied to the actual request | The response returns `log_path`, and that file exists when the response is sent. |
 

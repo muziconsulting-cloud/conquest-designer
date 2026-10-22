@@ -77,6 +77,13 @@ Full spec: [`docs/AVC-SPEC.md`](./docs/AVC-SPEC.md).
   set on every handoff. A judge reads this file to see the collaboration.
 - `src/escrow/index.ts` — the 2-of-2 escrow. One escrow, in-repo. The **settle**
   transition is the only transition that may issue a certificate.
+- `src/listing/` — the self-listing protocol (P8). `register.ts` (the human registration
+  and the 402), `token.ts` (the single-use listing token), `payment.ts` (the x402-shaped
+  request/verify pair and the **local facilitator stub**), `self-list.ts` (the agent's own
+  listing path, through the ordinary pipeline). **Pay once, list once**: the token is
+  consumed on redemption, it grants the right to list and never value, and the agent's
+  declared price is a claim that the same critic judges. The facilitator is stubbed
+  locally and must be described as such, in plain words, wherever it is mentioned.
 - `src/avc/certificate.ts` · `sign.ts` · `verify.ts` · `store.ts` — the certificate.
   **Issue only on `settled`**; the certificate carries **exactly three facts** (who /
   what was paid / what it bought) and never a valuation, a score or a token; the id is
@@ -139,6 +146,12 @@ Every recall cites its source. The orchestrator is `src/` code (P5) and the agen
   there is no NVIDIA account, key or billing in our path.
 - **NVIDIA:** the contribution is the hosted Meterless fleet's model routing. Declare it
   as *not yet exercised* until a run proves it.
+- **x402 (payment rail):** the listing fee is collected over an **x402-shaped** request
+  and response — a real `402`, the challenge in the headers, a signed payment, a
+  verification step. The **facilitator is a local stub**: it verifies the request shape
+  and the Ed25519 signature in process, and contacts no chain, no provider and no
+  payment API. No money moves, no key of ours is held, and no receipt secret is ever
+  logged. There is **no live x402 rail** — say so wherever the payment path is described.
 
 ## 7 · The honesty rules (the thing that will be judged)
 
@@ -176,6 +189,7 @@ deploy it.** Nothing private from it may be copied into this repository (see
 src/types.ts              shared contracts (types only)
 src/llm/port.ts           the one LLM port
 src/zetaris/adapter.ts    the Zetaris adapter
+src/listing/              the self-listing protocol: register, token, payment, self-list
 src/README.md             what goes in src/ and in what order
 prompts/                  mandated Meterless prompt library (9 files, @filename-bound)
 cursor-prompts/           11 scoped Cursor prompts + README + RUNBOOK
@@ -241,18 +255,20 @@ DECK.md DEMO.md            GENERATED POST-BUILD from the running app (p11)
   timestamps, the trace id/path, and the Markovian engine's random run uuid. Decisions,
   reconciled values, content ids, memory ids, entity ids and event ids are stable.
 
-**Next move:** P8 (the self-listing protocol — the agent lists itself, declares its own
-price and holds its own certificate) → P9 (the listing surface) → P10 (the LLM seam's
-hosted path) → **P11**, one step at a time, with the RUNBOOK's gates.
+**Next move:** P9 (the listing surface — the HTML the judge can read) → P10 (the LLM
+seam's hosted path) → **P11**, one step at a time, with the RUNBOOK's gates.
 
 **Done so far:** P0 (the swarm) · P1–P3 (the three engines, written from the sponsors'
 contracts, green on their own suites) · P4/P5 (the roles on the engines, one seam) ·
 P6 (the Zetaris client against the published REST contract) · P7 (the money path: the
-2-of-2 escrow, and the AVC issued only on `settled`, verifiable from its signed bytes).
-**Still not built:** the UI (P9), the self-listing protocol (P8), the hosted LLM path
-(P10), and the two artifacts (`DECK.pdf`, `demo/demo.mp4`). P11 is the submission-integrity
-step: three real output examples, the anti-hardcode audit, the documentation audit and
-the clean-clone proof — and the regeneration of the real `DECK.md` and `DEMO.md`.
+2-of-2 escrow, and the AVC issued only on `settled`, verifiable from its signed bytes) ·
+**P8 (the self-listing protocol: a real 402, a locally stubbed facilitator that verifies
+the request shape and the signature, a single-use listing token, and the agent declaring
+its own price through the ordinary pipeline — where the critic can hold it)**.
+**Still not built:** the UI (P9), the hosted LLM path (P10), and the two artifacts
+(`DECK.pdf`, `demo/demo.mp4`). P11 is the submission-integrity step: three real output
+examples, the anti-hardcode audit, the documentation audit and the clean-clone proof —
+and the regeneration of the real `DECK.md` and `DEMO.md`.
 
 **The organiser's own final checklist, answered line by line:**
 [`docs/COMPLIANCE-MAP.md`](./docs/COMPLIANCE-MAP.md) — including the four declared

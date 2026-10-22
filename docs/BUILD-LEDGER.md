@@ -378,7 +378,8 @@ otherwise.
 ### The next four moves, in order
 
 1. **P8** — the self-listing protocol: the agent lists itself, declares its own price
-   and holds its own certificate (the listing token is single-use).
+   and holds its own certificate (the listing token is single-use). **DONE 10-22** —
+   see session 4 below.
 2. **P9** — the listing surface a stranger can use, plus the certificate view.
 3. **P10** — the hosted path: the Meterless provider credential and the Nemotron
    routing id, so the seam stops being the offline adapter.
@@ -386,3 +387,66 @@ otherwise.
    audit, the documentation audit, the clean-clone proof, and the **real** `DECK.md` and
    `DEMO.md` — then the two artifacts (`DECK.pdf`, `demo/demo.mp4`) that are worth 15
    points and are currently worth nothing.
+
+---
+
+## Ledger — 2026-10-22 (live, session 4): the agent lists itself, and the critic holds it
+
+**P8 is built and green.** The exchange now has a front door that a human opens once and
+an agent walks through by itself: register → **402** → pay → redeem → **the agent
+declares its own price** → the same evidence pipeline, the same critic, the same three
+engines.
+
+| Criterion | Max | Now | Reason | Artifact |
+|---|---|---|---|---|
+| Technical Execution | 20 | **13** | The money path and the self-listing path are both built and both provable: a real HTTP `402` with the x402 challenge in the headers, a signed payment verified against a **local facilitator stub**, a single-use listing token, and the agent's own price judged by the ordinary critic. The honest cap is still the **surface** (no UI) and the **absence of a live x402 rail** — the facilitator is stubbed, and that is stated everywhere it is mentioned. | `src/listing/`, `scripts/listing-selftest.ts`, `logs/trace-20261022-listing-accept.jsonl`, `logs/trace-20261022-listing-hold.jsonl` |
+| Innovation & Creativity | 15 | **9** | The exchange's sharpest idea is now built rather than described: the agent **names its own price**, and the price is a claim like any other — the reconciler and the critic can hold it. The agent cannot skip the critic by listing itself, and the hold is recorded in the trace with the evidence that produced it. | `src/listing/self-list.ts`, `logs/trace-20261022-listing-hold.jsonl` (9 entries) |
+| Product & UX | 10 | **5** | The protocol is usable over HTTP by a stranger with three calls (`POST /listing/register`, `POST /listing/pay`, `POST /listing/self-list`) and a `curl` in the README. Still **no UI** (P9) and no certificate view a human can read. | `src/server.ts`, `README.md` |
+| Impact & Real-World Relevance | 30 | **11** | Unchanged — the published impact statement and the pre-existing declaration, with the swarm's real output public. Still no named user, no live URL, no number. | `README.md`, `docs/AVC-SPEC.md` |
+| Sponsor Tech Integration | 10 | **7** | Unchanged — our three engines green on the sponsors' suites, and the roles run on them. The Meterless *provider* credential and the Zetaris live instance are still open. | `evidence/conformance-ours.txt`, `src/engines/`, `SPONSORS.md` |
+| Demo (video/deck) | 15 | **0** | Still no `demo/demo.mp4`, no `DECK.pdf`. Binary-ish: missing video = −15. **This is the biggest remaining hole and it is the cheapest to close.** | `docs/DEMO-draft.md`, `docs/DECK-draft.md` (plans only) |
+| **Total** | **100** | **~46** | Up from ~43. The build is real, the money path and the self-listing path both work, and the remaining points are the surface, the artifacts, the hosted path and the impact evidence. | |
+
+### What was built this session
+
+- **P8 — the self-listing protocol.** `src/listing/register.ts` (the human registration and
+  the `402`; the fee is **R144**, a whole rand, in ZAR), `src/listing/payment.ts` (the
+  x402-shaped challenge, the ephemeral in-memory Ed25519 payer, the **local facilitator
+  stub** — it checks the request shape, the signature and the single use of the challenge,
+  and contacts no chain and no provider), `src/listing/token.ts` (the single-use,
+  agent-bound listing token), `src/listing/self-list.ts` (the agent's own listing path,
+  through the **ordinary** pipeline — the agent cannot skip the critic), and
+  `scripts/listing-selftest.ts` (`bun run listing:selftest`, exit 0, PASS). The rules the
+  gate proves: pay once, list once; the token grants the right to list and never value; a
+  declared price the evidence does not support is **held**; the token secret and the
+  payment nonce never reach the trace. Two pieces of evidence: an **accept** trace (8
+  entries) and a **hold** trace (9 entries). (`fb2d1c4`)
+- **The orchestrator seam was opened, not duplicated.** `resolveRunLlm()` and the
+  `RunLlm` interface were extracted in `src/orchestrator/index.ts` so the self-listing
+  path and the ordinary run share **one** model route; the trace now records
+  `llmRun.source`. The determinism gate stayed green, so the refactor changed no
+  behaviour. (`fb2d1c4`)
+- **The evidence files were made honest.** The tracer appends by design (one file per run
+  id on a live server), so the selftest now clears its own two fixed trace files before
+  it runs. The committed traces are **one run each** — 8 and 9 entries — instead of three
+  appended copies each.
+
+### Corrected while writing this entry
+
+- **The P8 trace files had grown three appended runs each** (24 and 27 lines) because
+  the tracer appends and the selftest reuses a fixed trace id. The committed evidence
+  read as one run per file; now it *is* one run per file, and the selftest enforces it.
+
+### The next four moves, in order
+
+1. **P9** — the listing surface a stranger can use, plus the certificate view. This is
+   the **Product & UX** row and the surface the demo video needs.
+2. **P10** — the hosted path: the Meterless provider credential and the Nemotron
+   routing id, so the seam stops being the offline adapter. Organiser-gated; do not
+   claim Nemotron until a recorded run names the routing id.
+3. **P11** — the submission-integrity step: three real output examples, the anti-hardcode
+   audit, the documentation audit, the clean-clone proof, and the **real** `DECK.md` and
+   `DEMO.md`.
+4. **The two artifacts** — `DECK.pdf` and `demo/demo.mp4` — worth **15 points** and
+   currently worth nothing. They are the cheapest points left in the rubric, and the
+   demo has to show the **held listing**, not just the happy path.

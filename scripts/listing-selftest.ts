@@ -19,7 +19,7 @@
  * Run: `bun run listing:selftest`
  */
 
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync, rmSync } from 'node:fs'
 import { createTraceSink } from '../src/orchestrator/trace.ts'
 import { ListingRegistry, registerAgent, LISTING_FEE_ZAR } from '../src/listing/register.ts'
 import { ListingTokenBook } from '../src/listing/token.ts'
@@ -44,6 +44,23 @@ const agent: AgentIdentity = {
 
 const AT = '2026-10-22T06:00:00.000Z'
 const RESOURCE = 'http://127.0.0.1:3000/listing/register'
+
+/** The two fixed trace ids — one file per path, so the P8 evidence never multiplies. */
+const ACCEPT_TRACE = 'trace-20261022-listing-accept'
+const HOLD_TRACE = 'trace-20261022-listing-hold'
+
+/**
+ * The tracer appends, which is right for a live server (one file per run id) and wrong
+ * for a selftest that reuses a fixed id: the file would grow a copy of the run every
+ * time the gate is run, and the committed evidence would carry three. So the selftest
+ * clears its own two files first — the file that survives is exactly one run.
+ */
+const resetEvidenceTraces = (): void => {
+  for (const runId of [ACCEPT_TRACE, HOLD_TRACE]) {
+    const path = `logs/${runId}.jsonl`
+    if (existsSync(path)) rmSync(path)
+  }
+}
 
 /** The whole human side of the protocol, once: register, pay, redeem. */
 async function buyTheRightToList(input: {
@@ -109,6 +126,8 @@ async function main(): Promise<number> {
   console.log('listing selftest — register → 402 → pay → redeem → the agent lists itself')
   console.log('')
 
+  resetEvidenceTraces()
+
   const registry = new ListingRegistry()
   const tokens = new ListingTokenBook()
   const facilitator = new LocalFacilitator()
@@ -129,7 +148,7 @@ async function main(): Promise<number> {
     termMonths: 12,
     now: () => AT,
     // A fixed trace id, so the P8 evidence is one file per path and never multiplies.
-    trace: createTraceSink('trace-20261022-listing-accept'),
+    trace: createTraceSink(ACCEPT_TRACE),
   })
 
   console.log(
@@ -163,7 +182,7 @@ async function main(): Promise<number> {
     termMonths: 12,
     now: () => AT,
     // A fixed trace id, so the P8 evidence is one file per path and never multiplies.
-    trace: createTraceSink('trace-20261022-listing-accept'),
+    trace: createTraceSink(ACCEPT_TRACE),
   })
 
   console.log(`self-list  -> refused: ${reused.reason}`)
@@ -191,7 +210,7 @@ async function main(): Promise<number> {
     declaredPriceZar: 9999,
     termMonths: 12,
     now: () => '2026-10-22T06:05:00.000Z',
-    trace: createTraceSink('trace-20261022-listing-hold'),
+    trace: createTraceSink(HOLD_TRACE),
   })
 
   console.log(

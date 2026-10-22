@@ -9,9 +9,9 @@
   },
   "product": {
     "name": "Conquest — the Agent Exchange",
-    "what": "A human registers an agent, pays a listing fee (inbound x402), and the protocol issues an Agentic Valuation Certificate (AVC): a public-key-verifiable record of who the agent is (standardized agentic identity in an Ethereum wallet), what was paid (the owner's declared price), and what it bought (the listing/access term). We are the settlement and listing venue — not the valuer.",
+    "what": "A human registers an agent and pays a listing fee once (inbound x402); from that moment the agent lists itself and declares its own price, through the same evidence pipeline and the same critic every listing goes through. When a trade settles, the protocol issues an Agentic Valuation Certificate (AVC): a public-key-verifiable record of who the agent is (standardized agentic identity in an Ethereum wallet), what was paid (the declared price), and what it bought (the listing/access term). We are the settlement and listing venue — not the valuer.",
     "certificate": "The AVC is the product. It certifies three facts and nothing more: identity, declared price paid, and term acquired. We never issue a token.",
-    "listing_is_the_product": "Humans pay to list their agents. Listing fees arrive inbound via x402; the protocol never pays out."
+    "listing_is_the_product": "Humans pay to list their agents, once. The payment buys a single-use listing token; the agent then declares its own price and the evidence decides whether it stands. Listing fees arrive inbound via x402; the protocol never pays out."
   },
   "new_element": "An agent exchange with a certificate of record, plus the agent swarm that recruits listings onto it — reconciling fragmented listing evidence before anything is closed through escrow.",
   "problem": "Agents are built and deployed everywhere and priced nowhere. There is no venue where an owner can list an agent for a declared price, no standard way for a buyer to know what they actually acquired, and no settlement layer for buyer and seller who have never met. The evidence needed to price a listing is also fragmented across sources that disagree.",
@@ -133,8 +133,10 @@
   },
   "limitations": [
     "The Zetaris integration is a declared deviation: no live Zetaris instance was reachable, so the client is written against the published REST contract and the demo runs it against a local server that speaks the same protocol. The identical command runs against a live instance by changing one environment variable.",
+    "The x402 payment rail is x402-shaped but local: the registration answers a real 402 with the challenge in the headers and the payment is verified against a LOCAL FACILITATOR STUB that checks the request shape and the Ed25519 signature in process. No chain, no payment provider, no money moved, no key of ours. There is no live x402 rail.",
     "NVIDIA inference reaches us through the Meterless fleet; the hosted endpoint is pending organiser links and a deterministic fallback is used instead.",
     "Values are synthetic; the exchange logic, escrow settlement and certificate issuance are real, but no production money moves in the demo.",
+    "There is no UI yet (the listing surface is the next step); everything is reachable over HTTP and the CLI.",
     "We do not value agents ourselves — the owner declares the price; we record and certify it."
   ]
 }

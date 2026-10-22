@@ -9,4 +9,7 @@ node_modules/
 vendor/
 # The traces are the evidence a judge reads — they are committed on purpose.
 !logs/.gitkeep
+# But the numbered traces a gate run writes (the determinism and verify-paths gates
+# each write one) are transient duplicates of the committed evidence — keep them out.
+logs/trace-20261022-0[0-9][0-9].jsonl
 .DS_Store
