@@ -5,7 +5,10 @@
 - `src/` — the built system.
 - `input_examples/` — the three request files P0 created.
 - `output_examples/` — where the real outputs go.
-- `README.md`, `DECK.md`, `DEMO.md` — the documentation.
+- `README.md` — the documentation.
+- `docs/DECK-draft.md`, `docs/DEMO-draft.md` — **provisional drafts** written before
+  the build. They are the structure for the deck and the video script, not the
+  deliverables. Step 5 turns them into the real thing.
 - `.cursor/rules/conquest.mdc` — the house rules.
 
 **Objective.** Produce the artifacts a judge uses to decide the submission is real:
@@ -111,6 +114,27 @@ silent: a file that was never committed, and a path that reaches outside the rep
 
 **Do not copy anything into the clone to make it pass.** The clone is the test.
 
+## 5 · Generate the real deck and the real video script
+
+`docs/DECK-draft.md` and `docs/DEMO-draft.md` were written **before the system
+existed**. They describe screens, routes and behaviours that were only planned. Now that
+the system is built, **regenerate both from the running application**:
+
+- `DECK.md` — the deck's content: on-slide copy, speaker notes, a visual direction per
+  slide. **Every number on every slide must come from a run that you performed in this
+  step** — the conformance scores, the counts, the listing totals. If the app cannot
+  produce a figure, the slide does not carry one.
+- `DEMO.md` — the recording script: shots, timecodes, and the exact narration. **Every
+  shot must be a screen or a command that exists.** A draft shot the app cannot show is
+  **cut**, not reworded into something vaguer.
+
+**Both files are written from what the app does, not from what the draft hoped it
+would do.** Where the draft and the app disagree, the app wins and the draft was wrong —
+say so in your report.
+
+**Keep the drafts.** They are the record of what was planned before the build, which is
+the honest thing to leave in the repository.
+
 **Stop rule — the run is done when all of these hold:**
 
 - `output_examples/` holds three responses from three real runs, three different
@@ -120,6 +144,8 @@ silent: a file that was never committed, and a path that reaches outside the rep
 - The documentation audit returns no unimplemented claims and no failing commands.
 - The clean clone runs end to end: install, typecheck, swarm, `POST /run`, and the
   response matches the contract.
+- `DECK.md` and `DEMO.md` exist, and **every claim in them is something the build
+  produced**. No slide number, no shot, and no command that was not run.
 - `README.md` contains the judge's quick start, and **every command in it was run**.
 
 Report back: the three example files, the audit tables (findings and fixes), the

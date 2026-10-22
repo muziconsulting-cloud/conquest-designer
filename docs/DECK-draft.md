@@ -1,4 +1,13 @@
-# DECK — the content
+# DECK — draft structure (provisional)
+
+> **PROVISIONAL DRAFT — NOT THE DELIVERABLE.**
+> This is the *plan* for the deck, written before the system was built. It describes
+> screens, routes and behaviours that **do not exist yet**. The real `DECK.md` is
+> generated **after the build**, from the running application, by the p11 step — and
+> every number on every slide comes out of a real run.
+> **Do not build a deck from this file as it stands.** Use it as the structure, the
+> argument and the honesty lines; replace the claims with what the app actually does.
+
 
 **This file is the deck's content, not a deck.** Copy each slide's **On-slide copy**
 into your tool (Keynote, Google Slides, Canva, PowerPoint). The **Speaker notes** are

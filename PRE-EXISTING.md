@@ -29,7 +29,8 @@ git show pre-window-scaffold --stat           # exactly what was pre-existing
 | `src/zetaris/adapter.ts` | The **interface** of the Zetaris adapter, plus the published REST contract as comments. | Pre-existing (rule 4.2) |
 | `src/README.md` | The folder map and the invariants. | Pre-existing (rule 4.2) |
 | `fixtures/listing-set.json` | The four fixture paths (accept / revise / hold / fallback). | Pre-existing (rule 4.2) |
-| `README.md`, `SPONSORS.md`, `DECK.md`, `DEMO.md`, `metadata.json`, `BUILD-PROMPTS.md`, `FIRST-PRINCIPLES.md`, `PLAN.md` | The documentation, the deck outline, the demo script, the submission metadata. | Pre-existing (rule 4.2) |
+| `README.md`, `SPONSORS.md`, `metadata.json`, `BUILD-PROMPTS.md`, `FIRST-PRINCIPLES.md`, `PLAN.md`, `docs/DECK-draft.md`, `docs/DEMO-draft.md` | The documentation, the submission metadata, and the **provisional plans** for the deck and the video. | Pre-existing (rule 4.2) |
+| `DECK.md`, `DEMO.md` | The deck's content and the video script, **generated after the build from the running application** by the p11 step. | In-window (rule 5.1) |
 | `package.json`, `bun.lock`, `tsconfig.json`, `.gitignore`, `.env.example` | Toolchain. | Pre-existing (rule 4.2) |
 | `tools/hackathon-compliance/` | The organiser's compliance checker, vendored for self-verification. | Pre-existing tool. |
 

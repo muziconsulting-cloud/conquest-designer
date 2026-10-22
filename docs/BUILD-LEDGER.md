@@ -260,8 +260,9 @@ into the repo, and will not be. The shipped code is authored **inside** the buil
 in the repo, by Cursor. `cursor-prompts/RUNBOOK.md` states this as the window's first
 rule.
 
-**Two deliverables closed:** `DEMO.md` (the 3-minute walkthrough, 10 beats,
-with the spoken honesty lines for Zetaris and the local runtime) and `DECK.md` (12
+**Two deliverables drafted, not closed:** `docs/DEMO-draft.md` (the 3-minute
+walkthrough, 10 beats, with the spoken honesty lines for Zetaris and the local runtime)
+and `docs/DECK-draft.md` (12
 slides). Both are text artifacts about the submission, not the product.
 
 ---

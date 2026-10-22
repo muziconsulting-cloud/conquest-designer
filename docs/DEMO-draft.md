@@ -1,4 +1,13 @@
-# DEMO — the video content
+# DEMO — draft structure (provisional)
+
+> **PROVISIONAL DRAFT — NOT THE DELIVERABLE.**
+> This is the *plan* for the video, written before the system was built. Every route,
+> command and behaviour in it **does not exist yet**. The real `DEMO.md` is generated
+> **after the build**, from the running application — a shot that the app cannot show is
+> **cut from the script**, not faked.
+> **Do not record this as it stands.** Use it for the structure, the timecodes and the
+> honesty lines; replace the shots with what the app actually does.
+
 
 **The claim the video has to earn:** an agent can be priced, listed, bought and
 certified — and the certificate says only three things, all of them true.

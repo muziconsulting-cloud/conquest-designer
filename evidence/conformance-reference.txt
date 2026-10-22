@@ -1,6 +1,17 @@
-# Reference conformance suites — Meterless engines, reference implementations
-# Run in this repository's layout, vendor/ degit'd, no API key, no network beyond the fetch.
-# npx tsx vendor/meterless/<engine>/conformance/runner.ts
+# Reference conformance suites — Meterless engines, THE SPONSORS' REFERENCE
+# IMPLEMENTATIONS, NOT OURS.
+#
+# These scores are what Meterless's own reference implementation scores against
+# Meterless's own suites. They prove the gate is REACHABLE on this machine (no API key,
+# no cloud account, no card) — they are NOT our result and are not presented as our
+# result anywhere.
+#
+# Our implementations' scores come from `bun run conformance` after the build, and
+# land in evidence/conformance-ours.txt.
+#
+# Re-verified 2026-10-22 in this repository with Bun (no tsx, no network beyond the
+# degit fetch):
+#   bun vendor/meterless/<engine>/conformance/runner.ts
 
 === hmem ===
     PASS db-001 dream proposals never materialize before approval; approval creates a long_term record with lineage

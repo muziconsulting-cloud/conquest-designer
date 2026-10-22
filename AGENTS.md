@@ -162,7 +162,9 @@ data/                     the sample source records the offline adapter reads
 logs/                     Cursor run transcripts (.jsonl ignored)
 tools/hackathon-compliance/  the gate + deliverable monitor
 README.md SPONSORS.md metadata.json  the front door
-PRE-EXISTING.md SUBMISSION.md DECK.md DEMO.md  the declarations and deliverables
+PRE-EXISTING.md SUBMISSION.md               the declarations and the submission text
+docs/DECK-draft.md docs/DEMO-draft.md  PROVISIONAL plans for the two artifacts
+DECK.md DEMO.md            GENERATED POST-BUILD from the running app (p11)
 ```
 
 ## 11 · Current state (2026-10-22, live)

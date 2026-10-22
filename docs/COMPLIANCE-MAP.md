@@ -75,7 +75,7 @@ run Nemotron unless a recorded run names the routing id.**
 
 | Item | Where |
 |---|---|
-| Demo video, 1–4 minutes | The content is in `DEMO.md` — a timed, word-for-word script with a fallback for every shot. The recording is a Day-5 deliverable, exported to `demo/demo.mp4` **in the repository** (the compliance monitor looks for a real video file, not a form URL) and uploaded unlisted for the form. |
-| Slide deck complete | The content is in `DECK.md` — fourteen slides, on-slide copy, speaker notes, and a visual direction per slide. The deck is exported to `DECK.pdf`. |
+| Demo video, 1–4 minutes | **A post-build artifact.** The plan is `docs/DEMO-draft.md` (a timed, word-for-word script written before the system existed). The real `DEMO.md` is regenerated from the running app by the p11 step — every shot a screen or command that exists — and the recording is exported to `demo/demo.mp4` **in the repository** (the compliance monitor looks for a real video file, not a form URL) and uploaded unlisted for the form. |
+| Slide deck complete | **A post-build artifact.** The plan is `docs/DECK-draft.md` (fourteen slides, on-slide copy, speaker notes, visual direction). The real `DECK.md` is regenerated from the running app by the p11 step — every number on every slide from a run that was actually performed — and exported to `DECK.pdf`. |
 | Sponsor technology explanation written | `SPONSORS.md` and `SUBMISSION.md`. |
 | Pre-existing components declared | `PRE-EXISTING.md`, in full, with the `pre-window-scaffold` tag as the audit trail. |
