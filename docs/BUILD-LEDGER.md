@@ -48,8 +48,8 @@ Sorted cheapest-big-number first. "Impact dominates" (30, tie-breaker) outranks 
 |---|---|---|---|---|---|
 | 1 | ~~**README** with impact statement + pre-existing declaration + swarm arch~~ | Impact, gates | ~~+8–12~~ | low | **DONE 10-21** |
 | 2 | ~~**SPONSORS.md** — honest deviation + Apache-2.0 attribution~~ | Sponsor (gate) | ~~+2–3~~ | low | **DONE 10-21** |
-| 3 | **Implement H-MEM + World Model + Markovian in our code; go green against the same suites** | Sponsor, Technical | **+3–4** | med | **now the top build item** |
-| 4 | **In-window swarm build** — listings-only roster, real JSONL traces, fallback mode | Technical | **+10–14** | high | Oct 22+ |
+| 3 | ~~**Implement H-MEM + World Model + Markovian in our code; go green against the same suites**~~ | Sponsor, Technical | ~~+3–4~~ | med | **DONE 10-22** — 13/13, 8/8, 8/8 on OUR modules (`evidence/conformance-ours.txt`) |
+| 4 | ~~**In-window swarm build** — listings-only roster, real JSONL traces, fallback mode~~ | Technical | ~~+10–14~~ | high | **DONE 10-22** — P0: four paths, 35-entry traces, `POST /run`; P4/P5: the roles now run on the engines |
 | 5 | **AVC + escrow settle hook** — ownership transfer not cash-out | Technical, Innovation | **+6–9** | med | Oct 22+ |
 | 6 | **Demo video + deck** — run the workflow, don't narrate it | Demo | **+12–14** | med | Oct 22+ |
 | 7 | **Listing surface** — a stranger can list + receive an AVC | Product/UX | **+6–7** | med | Oct 22+ |
@@ -301,3 +301,68 @@ account is on the **Free** plan (named models refused). The organiser's Cursor a
 instructions are still marked TBC. **No implementation exists in `src/` yet** — the
 build is waiting on Cursor capacity, and the ledger says so rather than implying
 otherwise.
+
+---
+
+## Ledger — 2026-10-22 (live, session 3): the engines are live, and the roles run on them
+
+**What exists now, scored against the submission and not the ambition.**
+
+| Criterion | Max | Now | Reason | Artifact |
+|---|---|---|---|---|
+| Technical Execution | 20 | **9** | The swarm runs end to end and the engines are under it, not beside it: `src/engines/session.ts` is the one seam, the roles store/recall/cite/record/learn on it, and the run is reproducible entry by entry (`bun run determinism`). The money path (escrow, AVC) is still unbuilt — that is the honest cap. | `src/engines/`, `src/agents/`, `src/orchestrator/`, `scripts/determinism.ts`, `logs/trace-20261022-001..004.jsonl` |
+| Sponsor Tech Integration | 10 | **7** | **Our own** implementations of all three engines, green on the sponsors' own suites: H-MEM 13/13, World Model 8/8, Markovian 8/8, exit 0, local, no keys — and the roles run on them. The gap left is the Meterless *provider* credential (organiser-gated) and the Zetaris live instance (declared deviation). | `evidence/conformance-ours.txt`, `src/engines/`, `SPONSORS.md` |
+| Innovation & Creativity | 15 | **6** | The exchange frame, the AVC as the product, and now the thing that makes it more than a plan: an exchange whose critic **teaches the memory engine** what survived the challenge, so the next run recalls differently. | `src/agents/conflict-critic.ts`, `docs/AVC-SPEC.md` |
+| Impact & Real-World Relevance | 30 | **11** | The impact statement and the pre-existing declaration are published; the swarm's real output is now public and reproducible. Still no named user, no live URL, no number. | `README.md`, `docs/AVC-SPEC.md` |
+| Product & UX | 10 | **2** | `POST /run` and the CLI exist and work; the human-facing listing surface (P9) is not built. | `src/server.ts`, `src/index.ts` |
+| Demo (video/deck) | 15 | **0** | Still no `demo/demo.mp4`, no `DECK.pdf`. Binary-ish: missing video = −15. | `docs/DEMO-draft.md`, `docs/DECK-draft.md` (plans only) |
+| **Total** | **100** | **~35** | Up from ~20. The build is real now; the remaining points are the money path, the surface and the two artifacts. | |
+
+### What was built this session
+
+- **P0 — the swarm.** `src/tracer.ts`, `src/orchestrator/`, `src/agents/` (the five roles),
+  `src/engine/` (registry + Meterless HTTP adapter + the deterministic offline renderer),
+  `src/loading.ts`, `src/index.ts`, `src/server.ts`, `data/sources.json`, and the three
+  scripts. Four fixture paths, 35-entry traces, `POST /run`, `scripts/verify-paths.ts`
+  PASS, `scripts/recon.ts` PASS. (`0e87f82`)
+- **P1–P3 — the three engines, written from the sponsors' contracts.** `src/engines/hmem/`,
+  `src/engines/world-model/`, `src/engines/markovian/`. `bun run scripts/conformance.ts`
+  → H-MEM 13/13, World Model 8/8, Markovian 8/8, exit 0. The transcript is
+  `evidence/conformance-ours.txt`; the sponsors' reference scores are a separate file and
+  are never presented as ours. (`94dc258`)
+- **P4/P5 — the seam.** `src/engines/session.ts`; the volume planner expands the pull plan
+  on Markovian (LST-0003: 3 buckets over 2 chunks, so the carryover is real); the
+  reconciler stores and recalls on H-MEM and cites the memory ids its answer stands on;
+  the critic teaches H-MEM what survived the challenge; the closer writes the canonical
+  record to the World Model and the auditor writes the decision and the escalation onto
+  it. Every engine touch is in the trace under `detail.engine`. **The engines never
+  decide** — the exchange rule stays authoritative. `bun run scripts/determinism.ts` is a
+  new gate: two runs, compared entry by entry — identical response, identical trace
+  length, every trace entry identical once the volatile fields are stripped (wall-clock
+  timestamps, the trace id/path, the Markovian run uuid). (`71a12ef`)
+
+### Corrected while writing this entry
+
+- **The Meterless numbers in the docs were stale in three places** (`README.md`,
+  `SPONSORS.md`, `metadata.json`): they still said the suites were green against the
+  *reference* implementations and that our modules were "PENDING". They are ours, and
+  they are green. Fixed, with the two score files kept separate.
+- **`metadata.json` claimed Cursor was "LIVE — the development environment for the whole
+  build".** That was false and it was in a machine-readable file the organiser might
+  read. It now says what actually happened: the build layer was opencode, a declared
+  deviation. This is the same class of error the whole ledger exists to prevent — it was
+  in the repo, and it is now out.
+- **The Telemetry Auditor's engine was recorded as Markovian** (in `metadata.json` and the
+  README diagram) while the implementation writes the decision and the escalation to the
+  **World Model**. Corrected in both, and in `AGENTS.md`.
+
+### The next four moves, in order
+
+1. **P6** — the Zetaris client against the published REST contract (the client exists as
+   an interface; the protocol implementation does not).
+2. **P7/P8** — the money path: inbound x402, the 2-of-2 escrow, the AVC on `settled`.
+3. **P9** — the listing surface a stranger can use, plus the certificate view.
+4. **P11** — the submission-integrity step: three real output examples, the anti-hardcode
+   audit, the documentation audit, the clean-clone proof, and the **real** `DECK.md` and
+   `DEMO.md` — then the two artifacts (`DECK.pdf`, `demo/demo.mp4`) that are worth 15
+   points and are currently worth nothing.

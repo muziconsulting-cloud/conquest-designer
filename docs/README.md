@@ -9,7 +9,7 @@ ours, what is declared, and what is deliberately withheld.
 | [`BUILD-LEDGER.md`](./BUILD-LEDGER.md) | The honest build and scoring ledger: what was done when, what was corrected, what the self-assessment is and why. Kept in the open on purpose. | **Yes** — the corrections are the point. |
 | `../PRE-EXISTING.md` | The rule 4.2 / 5.4 declaration: every pre-existing component, in full, with the `pre-window-scaffold` tag. | **Yes** |
 | `../SUBMISSION.md` | The HackOS form text, paste-ready. | **Yes** |
-| `../evidence/` | The organiser's build check transcript, the reference conformance output, the rehearsal usage records, and the honest note on Cursor capacity. | **Yes** |
+| `../evidence/` | The organiser's build check transcript, **our** conformance output (`conformance-ours.txt` — our implementations against the sponsors' suites), the sponsors' reference scores as a **separate** file (`conformance-reference.txt`), the rehearsal usage records, and the honest note on Cursor capacity. | **Yes** |
 
 ## What is deliberately **not** here
 

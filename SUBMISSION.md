@@ -21,11 +21,13 @@ every one of them is a place a half-built submission can quietly lie:
 
 1. **The engine conformance numbers.** They must be the score of **our** implementations
    running **their** suites, and they must be pasted from the README build table — not from
-   a plan. Right now the suites are green against the **reference** implementations
-   (`evidence/conformance-reference.txt`); the shipped numbers are still to come.
-2. **`bun run conformance` must exist and exit 0.** It does not exist yet — `scripts/` is
-   created in the build. If the command is not in the README when you paste, the claim is
-   a claim about nothing.
+   a plan. **They are now real and recorded:** `H-MEM 13/13 · World Model 8/8 ·
+   Markovian 8/8`, our implementations in `src/engines/`, against the sponsors' own
+   suites, exit 0 — captured in `evidence/conformance-ours.txt`. The sponsors' reference
+   scores live in a separate file and are never presented as ours.
+2. **`bun run conformance` must exist and exit 0.** It exists, and it exits 0 — and
+   `bun run determinism` (two runs, compared entry by entry) exits 0 beside it. If the
+   command is not in the README when you paste, the claim is a claim about nothing.
 3. **The Zetaris story must match reality on the day.** If a live instance was reachable,
    say so and paste the URL. If not, the declared-deviation wording below is correct and
    must stay.
@@ -197,7 +199,10 @@ We implemented **our own** H-MEM, World Model and Markovian engines from their p
 `vendor/` directory; their reference implementations were read, never vendored; the
 Apache 2.0 attribution is in `SPONSORS.md`.
 
-They are not decoration. They are the substrate:
+They are not decoration. They are the substrate — and the roles actually run on them:
+the volume planner expands the pull plan on Markovian, the reconciler stores, recalls and
+cites on H-MEM, the critic teaches H-MEM what survived the challenge, and the closer and
+the auditor write the canonical record and the decision to the World Model.
 
 | Engine | Role it backs | What it does for the product |
 |---|---|---|
@@ -210,9 +215,15 @@ build is accepted only when the sponsor's own conformance suite passes against o
 implementation — the score is pasted into the README's build table, and `bun run
 conformance` reproduces the run.
 
-> *At paste time, replace this block with the actual numbers from the build table, and
-> delete this note:* `H-MEM 13/13 · World Model 8/8 · Markovian 8/8` — all local, no API
-> key, exit code 0.
+**Our scores, on our own implementations in `src/engines/`, against the sponsors' own
+suites: H-MEM 13/13 · World Model 8/8 · Markovian 8/8** — all local, no API key, exit
+code 0, recorded in `evidence/conformance-ours.txt`. The sponsors' reference scores are a
+separate file (`evidence/conformance-reference.txt`) and are never presented as ours.
+
+**The engines store, retrieve, cite, record and learn — they never decide.** The
+exchange rule stays authoritative: the owner's declaration is the claim, and only
+independent sources resolve a field. That is why a price the evidence does not support
+can be **held**.
 
 ## How the build was done — and the one deviation in it
 

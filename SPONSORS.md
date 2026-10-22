@@ -129,6 +129,25 @@ All three run locally in about a minute with no API keys. **No cloud account, no
 card gate.** The suites exit `0` on pass, `1` on failure, `2` if the implementation cannot be
 loaded.
 
+### And then we implemented them ourselves — and they pass the same suites
+
+The table above is the **sponsors' reference implementations** on our machine — it proved
+the suites run here. The scores that count for this submission are **our own
+implementations**, written from each engine's `AGENTS.md` contract in `src/engines/`:
+
+| Engine | Our module | Our score | Exit code |
+|---|---|---|---|
+| **H-MEM** | `src/engines/hmem/` | **13/13 checks passed** | `0` |
+| **Markovian** | `src/engines/markovian/` | **8/8 checks passed** | `0` |
+| **World Model** | `src/engines/world-model/` | **8/8 checks passed** | `0` |
+
+`bun run conformance` reproduces the run; the transcript is
+`evidence/conformance-ours.txt`. **The roles run on these engines** — the volume planner
+expands the pull plan on Markovian, the reconciler stores/recalls/cites on H-MEM, the
+critic teaches H-MEM what survived the challenge, and the closer and the auditor write
+the canonical record and the decision to the World Model. The engines store, retrieve,
+cite, record and learn; **they never decide** — the exchange rule stays authoritative.
+
 ### The provider path (the "Power" side)
 
 Meterless also *serves* models over an OpenAI-compatible API. We implement against
@@ -170,7 +189,7 @@ This is why the demo never stalls on a credential that has not been issued.
 | Engine | Used by our swarm | Why it fits |
 |---|---|---|
 | **H-MEM** | **Evidence Reconciler** and the **Fidelity & Conflict Critic** | tiered memory with provenance on every record, a defined lifecycle, and contradiction handling that scores conflicts instead of last-write-wins — exactly what reconciling fragmented listing evidence needs |
-| **World Model** | the swarm's **canonical listing & trade event log** | append-only event log as single source of truth, idempotent ingest, stable content-addressable IDs, bitemporal edges, and an ordered audit entry per mutation — the same guarantees our AVC issuance trail needs |
+| **World Model** | the **Listing Closer** and the **Telemetry Auditor** — the canonical listing & trade event log | append-only event log as single source of truth, idempotent ingest, stable content-addressable IDs, bitemporal edges, and an ordered audit entry per mutation — the same guarantees our AVC issuance trail needs |
 | **Markovian** | **Volume Planner** and long-horizon runs | bounded-context chunking with a compressed state carried forward, so cost per step stays flat across a long listing run; per-step records give us replay and diffs for the audit trail |
 
 **Scout Intent** (pre-action intent detection, guard, signed execution contract) is the

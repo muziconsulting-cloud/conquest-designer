@@ -95,12 +95,12 @@ The `curl` is the **programmatic entry point** — no UI, no clicking. It return
 ```json
 {
   "request_id": "example-001",
-  "trace_id": "trace-20261024-001",
+  "trace_id": "trace-20261022-001",
   "status": "success",
   "agents_used": ["volume-planner", "evidence-reconciler", "listing-closer", "conflict-critic", "telemetry-auditor"],
-  "result": { "summary": "…", "findings": [ … ], "confidence": 0.82 },
-  "collaboration": { "feedback_loop_completed": true, "revision_count": 1, "evaluator_findings": [ … ] },
-  "log_path": "logs/trace-20261024-001.jsonl"
+  "result": { "summary": "…", "findings": [ … ], "confidence": 0.95 },
+  "collaboration": { "feedback_loop_completed": false, "revision_count": 0, "evaluator_findings": [ … ] },
+  "log_path": "logs/trace-20261022-001.jsonl"
 }
 ```
 
@@ -157,6 +157,31 @@ sponsors' own suites against **our** implementations in `src/engines/`:
 `src/engines/` is written from the sponsors' published contracts, not copied from their
 reference implementations — `vendor/` is gitignored and fetched at build time.
 
+**And the roles run on them.** The engines were not a shelf — every role works through
+the engine that owns its job, and every engine touch is in the trace under
+`detail.engine`:
+
+| Role | What it does on the engine |
+|---|---|
+| **volume-planner** | expands the pull plan on **Markovian** — bounded chunks, the carryover carrying the plan forward; the buckets are read back out of the engine's own output |
+| **evidence-reconciler** | stores every observation in **H-MEM**, recalls the candidates for a field, and cites the memory ids its answer stands on |
+| **conflict-critic** | teaches **H-MEM** what survived the challenge: the value that carried the record is reinforced, the contradicted claim is marked wrong and flagged for review, an independent loser is marked unhelpful |
+| **listing-closer** | writes the canonical record to the **World Model** — the listing entity, the agent entity, the relation, the facts, the provenance, the audit |
+| **telemetry-auditor** | writes the decision and the escalation onto that same record |
+
+**The engines store, retrieve, cite, record and learn. They never decide.** The exchange
+rule — the owner's declaration is the claim, only independent sources resolve a field —
+stays authoritative; the engine's ranking only chooses which candidates are worth
+arguing about.
+
+```bash
+$ bun run determinism          # two runs, compared entry by entry
+PASS the response is identical between two runs
+PASS the trace length is identical (35 entries)
+PASS every trace entry is identical between two runs
+PASS the swarm is deterministic
+```
+
 **What is not built yet:** the escrow settlement and the certificate issue (P7–P8), and
 the UI (P9).
 
@@ -167,6 +192,7 @@ bun run swarm          # start the listing swarm (Volume Planner → Rec. → Cl
 bun run engines:fetch  # fetch the three Meterless engine specs (AGENTS.md contract + suites)
 bun run conformance    # run the three Meterless conformance suites against OUR implementations
 bun run recon          # the listing-side invariant: nothing published without supported evidence
+bun run determinism    # two runs, compared entry by entry (the decisions, the values, the ids)
 ```
 
 `bun run recon` checks the invariant that exists at this step — no listing is published
@@ -182,7 +208,8 @@ hackathon starter uses, and it is how the engine-usage line of the rubric gets r
 |---|---|---|
 | `bun run swarm` | evidence reconciliation → canonical listing/trade event log → bounded long-run cadence | **H-MEM** · **World Model** · **Markovian** |
 | `bun run conformance` | the three published conformance suites (`bun vendor/meterless/<engine>/conformance/runner.ts`) | H-MEM 13/13 · World Model 8/8 · Markovian 8/8 — **our own scores**, on our own implementations in `src/engines/`, recorded in [`evidence/conformance-ours.txt`](./evidence/conformance-ours.txt). The sponsors' reference scores are a separate file and are never presented as ours. |
-| `bun run recon` | the pre-existing product's `writeLedger` rail and supply invariant | — (pre-existing product API) |
+| `bun run determinism` | the same swarm, twice, compared entry by entry | the engines' ids come back identical — memory ids, entity ids, event ids, content ids |
+| `bun run recon` | the listing-side invariant — nothing published without supported, attributed evidence | the **World Model** audit trail is what it reads |
 
 The swarm writes one JSONL trace per run under `logs/`, so every listing decision is
 reproducible and auditable.
@@ -255,6 +282,7 @@ the specification, and any feature can be re-run from its prompt.
 |---|---|---|---|---|
 | **P0** | the listing swarm, end to end: tracer, orchestrator, the five roles, the LLM registry, `POST /run` | [`cursor-prompts/p0-scaffold-wiring.md`](./cursor-prompts/p0-scaffold-wiring.md) | `bunx tsc --noEmit`; `bun run swarm`; `--input` capture; `POST /run`; two runs decision-identical | **pass** — 4 fixture paths (accept / hold / revise / fallback), 35-entry trace, three captured responses, `tsc` exit 0 |
 | **P1–P3** | the three Meterless engines, written from the sponsors' contracts | [`p1-hmem-engine.md`](./cursor-prompts/p1-hmem-engine.md) · [`p2-world-model-engine.md`](./cursor-prompts/p2-world-model-engine.md) · [`p3-markovian-engine.md`](./cursor-prompts/p3-markovian-engine.md) | `bun run scripts/conformance.ts` — each sponsor's suite against **our** module | **pass** — H-MEM 13/13, World Model 8/8, Markovian 8/8 |
+| **P4–P5** | the roles and the loops, wired to the engines — the seam that makes the engines part of the product rather than a shelf | [`p4-five-agents.md`](./cursor-prompts/p4-five-agents.md) · [`p5-orchestrator-escalation.md`](./cursor-prompts/p5-orchestrator-escalation.md) | `bunx tsc --noEmit`; `bun run swarm`; `bun run determinism`; the four paths unchanged | **pass** — Markovian expands the plan (carryover proven: 3 buckets over 2 chunks), H-MEM stores/recalls/cites and is taught by the critic, the World Model carries the canonical record and the decision; `tsc` exit 0; the swarm still takes accept / hold / revise / fallback |
 
 ### Toolchain check
 
@@ -298,10 +326,10 @@ Volume Planner  (orchestrator — decomposes the listing volume into work)      
 Evidence Reconciler  (reconciles a candidate listing against fragmented srcs) [H-MEM]
       │
       ▼
-Listing Closer  ⇄  Fidelity & Conflict Critic   (closes via escrow; critic)  [World Model]
+Listing Closer  ⇄  Fidelity & Conflict Critic   (closes via escrow; critic)  [World Model · H-MEM]
       │
       ▼
-Telemetry Auditor  (audits the run's own traces; emits the scorecard)        [Markovian]
+Telemetry Auditor  (audits the run's own traces; emits the scorecard)        [World Model]
 ```
 
 The roster solves **fragmented intelligence** by partitioning the work: reconciliation is a
@@ -345,8 +373,10 @@ See **[`SPONSORS.md`](./SPONSORS.md)** for the full write-up. Summary:
   (canonical listing/trade event log) and **Markovian** (bounded-context long runs). All three
   are Apache 2.0, run locally with no API keys, and are **gated by Meterless's own
   conformance suites**. The sponsors' reference implementations score 13/13, 8/8, 8/8 on
-  this machine; **our** implementations are P1–P3 and `bun run conformance` reports
-  **PENDING** for each until its implementation exists.
+  this machine; **our** implementations score **13/13, 8/8, 8/8** on the same suites —
+  `bun run conformance` reports them, and the run is recorded in
+  [`evidence/conformance-ours.txt`](./evidence/conformance-ours.txt). The roles run on
+  the engines (see the table above).
 - **Zetaris** — federated data. The hosted cluster was not provisionable (documented
   deviation); the documented federation pattern is reimplemented natively, with an adapter
   that speaks Zetaris's **published REST contract** (`OpenSqlQuery` → `PageSqlQuery` →

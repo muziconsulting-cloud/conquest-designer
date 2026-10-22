@@ -86,9 +86,17 @@ Full spec: [`docs/AVC-SPEC.md`](./docs/AVC-SPEC.md).
 
 | Engine | Role in the product | Conformance target |
 |---|---|---|
-| **H-MEM** (hierarchical memory) | Evidence Reconciler + Conflict Critic — every recall cites its memory/entity id | **13/13** |
-| **World Model** | Canonical listing/trade event log + audit — stable ids, provenance, bitemporal edges | **8/8** |
-| **Markovian** | Volume Planner + bounded long runs — **three-way overlap contract** (implement passes, reject passes, accept-and-ignore FAILS) | **8/8** |
+| **H-MEM** (hierarchical memory) | Evidence Reconciler (stores every observation, recalls the candidates for a field, cites the memory ids the answer stands on) + Conflict Critic (teaches the engine what survived the challenge) | **13/13** |
+| **World Model** | Canonical listing/trade event log + audit — the Listing Closer writes the record, the Telemetry Auditor writes the decision and the escalation | **8/8** |
+| **Markovian** | Volume Planner — the bounded expansion of the pull plan, with the carryover carrying the plan forward | **8/8** |
+
+**The seam rule (P4/P5):** the engines **store, retrieve, cite, record and learn — they
+never decide.** The exchange rule stays authoritative; the engine's ranking only chooses
+which candidates are worth arguing about. `src/engines/session.ts` is the one seam: one
+session per run, carrying the three engines. The H-MEM clock is **fixed**
+(`MEMORY_EPOCH`) so the memory ids stay deterministic between runs; the World Model and
+Markovian carry the wall clock, so their run ids and timestamps move (the determinism
+gate strips those fields and nothing else).
 
 Specs are **degit'd at build time** into gitignored `vendor/`:
 `npx degit meterless/meterless/engines/hmem vendor/meterless/hmem` (and
@@ -190,8 +198,9 @@ DECK.md DEMO.md            GENERATED POST-BUILD from the running app (p11)
   `src/loading.ts`, `src/index.ts`, `src/server.ts`, `data/sources.json`, and the three
   scripts. Gates run and passing: `bunx tsc --noEmit`; `bun run swarm` (4 lines, the 4
   fixture paths); `--input` capture → `output_examples/`; `POST /run` → the full
-  contract; `scripts/verify-paths.ts` PASS; `scripts/recon.ts` PASS; two runs
-  **decision-identical** (only `timestamp` and `trace_id` move).
+  contract;   `scripts/verify-paths.ts` PASS; `scripts/recon.ts` PASS; two runs
+  **decision-identical** (`bun run determinism` — timestamps, the trace id and the
+  Markovian run uuid are the only fields that move).
 - **The rule that makes it work:** the owner's declaration is the claim, never the
   evidence. Only independent sources resolve a field, so a claim can be contradicted —
   which is the only reason the hold exists.
@@ -207,11 +216,25 @@ DECK.md DEMO.md            GENERATED POST-BUILD from the running app (p11)
   each sponsor's suite against **our** module: **H-MEM 13/13, World Model 8/8,
   Markovian 8/8** — recorded in `evidence/conformance-ours.txt`. The sponsors' reference
   scores live in a separate file and are never presented as ours.
+- **P4/P5 are done: the roles run on the engines.** `src/engines/session.ts` is the one
+  seam. The volume planner expands the pull plan on **Markovian** (the buckets are read
+  back out of the engine's own output — LST-0003 expands three buckets over two chunks,
+  so the carryover is real); the reconciler stores and recalls on **H-MEM** and cites the
+  memory ids its answer stands on; the critic teaches **H-MEM** what survived the
+  challenge (the value that carried the record is reinforced, the contradicted claim is
+  marked `wrong` and flagged for review, an independent loser is marked `not_helpful`);
+  the closer writes the canonical record to the **World Model** and the auditor writes
+  the decision and the escalation onto it. Every engine touch is in the trace under
+  `detail.engine`. The engines never decide — the exchange rule stays authoritative.
+- **`bun run determinism` is a gate** (`scripts/determinism.ts`): two runs, compared
+  entry by entry. The response is identical, the trace length is identical and every
+  trace entry is identical, once the volatile fields are stripped — wall-clock
+  timestamps, the trace id/path, and the Markovian engine's random run uuid. Decisions,
+  reconciled values, content ids, memory ids, entity ids and event ids are stable.
 
-**Next move:** P4/P5 (wire the roles and the loops to the engines — the roles are
-built, the engine seam is built, the join between them is not) → P6 → P7 → P8 (the
-money path: inbound x402, escrow, the AVC) → P9 → P10 → **P11**, one step at a time,
-with the RUNBOOK's gates. P11 is the submission-integrity
+**Next move:** P6 (the Zetaris client) → P7/P8 (the money path: inbound x402, escrow,
+the AVC) → P9 (the listing surface) → P10 (the LLM seam's hosted path) → **P11**, one
+step at a time, with the RUNBOOK's gates. P11 is the submission-integrity
 step: three real output examples, the anti-hardcode audit, the documentation audit and
 the clean-clone proof — and the regeneration of the real `DECK.md` and `DEMO.md`.
 
