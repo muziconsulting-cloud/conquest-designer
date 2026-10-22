@@ -83,11 +83,6 @@ fields **plus** these, at the top level of the same JSON object:
 Keep the `AuditRecord` fields alongside them. **Do not change `src/types.ts`** — the
 enrichment happens in the tracer, not in the contract.
 
-- `src/agents/` — five stub agents, one per `AgentRole` in `src/types.ts`:
-  `volume-planner`, `evidence-reconciler`, `listing-closer`, `conflict-critic`,
-  `telemetry-auditor`. Each writes exactly one `AuditRecord` line per run for now.
-  No agent logic yet — they are wired, not implemented.
-
 **The folders a judge expects to find.** Create them now, with the right contents, so
 the shape is fixed before the features land:
 
@@ -135,6 +130,7 @@ then exit 0. The input file is the request contract above.
 bunx tsc --noEmit     # exit 0, no output
 bun run swarm         # exit 0, prints 4 lines (one per fixture), writes logs/*.jsonl
 bun run swarm -- --input input_examples/example_1.json   # exit 0, writes output_examples/example_1.json
+bun run serve -- --port 3000 &                          # the HTTP surface
 curl -s -X POST http://127.0.0.1:3000/run -H 'Content-Type: application/json' \
   -d @input_examples/example_1.json | head -40
 ```
@@ -142,7 +138,13 @@ curl -s -X POST http://127.0.0.1:3000/run -H 'Content-Type: application/json' \
 The `curl` must return a response with `request_id`, `trace_id`, `status`, `agents_used`,
 `result`, `collaboration` and `log_path`, and the `log_path` file must exist.
 
-Then run `bun run swarm` twice and confirm the JSONL trace is byte-identical between
-runs (determinism). If it is not, fix the adapter or the tracer — do not paper over it.
+Then run `bun run swarm` twice and confirm the two traces are **decision-identical**: the
+same fixtures produce the same decisions, the same findings, the same citations, the same
+confidences and the same agent order. **Only `timestamp` and `trace_id` may differ** —
+they are wall-clock facts. If anything else differs, fix the adapter or the tracer — do
+not paper over it.
+
+**Do not freeze a timestamp to make the file look identical.** A trace whose timestamps
+never move is a hardcoded artefact, and the anti-hardcode audit in P11 will find it.
 
 Report back: the files you created, the exact commands you ran, and their output.
