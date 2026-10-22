@@ -182,8 +182,89 @@ PASS every trace entry is identical between two runs
 PASS the swarm is deterministic
 ```
 
-**What is not built yet:** the escrow settlement and the certificate issue (P7–P8), and
-the UI (P9).
+### The money path — escrow, and the certificate the settlement issues
+
+The listing swarm decides **what the evidence supports**. The escrow settles it, and the
+settlement issues the **certificate** — the exchange's product.
+
+```bash
+$ bun run avc:selftest
+avc selftest — escrow lock → claim → seller paid → certificate issued
+
+ok   the funds lock (suspense)
+ok   the buyer claims
+ok   no certificate before the trade settles
+ok   the seller is paid and the trade settles
+ok   the issued certificate is stored and findable by id
+ok   the certificate verifies from its signed bytes
+
+certificate avc-2131a8ff752ea7f7ba063416
+  who:        0x3d5975a75f88656e82CBcAF8470F517E (AGT-SOLARISER)
+  paid:       1440 ZAR (ref x402_01JQ8H2Z5V7K9M3N)
+  bought:     LST-0001
+  signature:  EdDSA <verified: true>
+
+ok   the same settled trade yields the same certificate id
+ok   a tampered certificate is refused
+
+certificate avc-100d8c075920d40ae893b72a  (tampered: the amount was changed by 1 rand)
+  who:        0x3d5975a75f88656e82CBcAF8470F517E (AGT-SOLARISER)
+  paid:       1441 ZAR (ref x402_01JQ8H2Z5V7K9M3N)
+  bought:     LST-0001
+  signature:  EdDSA <verified: false>
+
+PASS the certificate is issued on settlement, and verifies from its own bytes
+```
+
+**The certificate carries exactly three facts** — who paid, what was paid, and what it
+bought. It is not a valuation, not a score and not a token: it is a signed statement that
+a specific payment settled a specific access term.
+
+| Fact | Carries |
+|---|---|
+| **who** | the agentic identity in the wallet — `agentId`, the agent key hash, the wallet address |
+| **what was paid** | the amount, the currency, the payment reference, the method, the time |
+| **what it bought** | the listing, the term in months, the access grant |
+
+**Three rules make it worth holding:**
+
+1. **It is issued only on settlement.** `issueForSettledTrade()` refuses any trade that is
+   not `settled`. There is no path to a certificate for a trade that has not been paid —
+   the selftest asserts it.
+2. **It verifies without the issuer.** A verifier needs the certificate's signed bytes and
+   the public key — nothing else. It never asks us whether the certificate is real. The
+   key is published at `/.well-known/avc-jwks.json`, so a holder can verify a certificate
+   from a third party with no relationship to us.
+3. **It is content-addressed.** The id is derived from the attested content, so the same
+   settled trade always yields the same id, and a certificate that was edited in any
+   field no longer derives its own id — it is refused.
+
+**The signing key has no default.** It comes from the environment (`AVC_PRIVATE_KEY`,
+`AVC_PUBLIC_KEY`); the code has no built-in key and fails loudly when the environment is
+empty. The selftest generates a **throwaway keypair in memory** when no key is configured,
+and says so.
+
+Over HTTP, the whole money path is four calls:
+
+```bash
+# 1. the verification key, published
+curl -s http://127.0.0.1:3000/.well-known/avc-jwks.json
+
+# 2. settle a trade — lock, claim, seller paid, certificate issued
+curl -s -X POST http://127.0.0.1:3000/settle -H 'Content-Type: application/json' \
+  -d '{"trade_id":"TRD-DEMO-001","listing_id":"LST-0001","amount_zar":1440,"term_months":12,
+       "buyer":"human:collector-01","payment_ref":"x402_01JQ8H2Z5V7K9M3N",
+       "who":{"agentId":"AGT-SOLARISER","agentKeyHash":"sha256:2f9c1b0e5a7d",
+              "walletAddress":"0x3d5975a75f88656e82CBcAF8470F517E","displayName":"Solariser"}}'
+
+# 3. verify the certificate from its own bytes
+curl -s http://127.0.0.1:3000/certificate/avc-fc92c987b068713d213b4a55
+# {"found":true,"valid":true,"reasons":[]}
+```
+
+**What is not built yet:** the UI (P9), and the hosted path with real provider credentials
+(P10). The money path itself is built, but it settles against a local escrow and a local
+key — no live x402 rail and no real payment is claimed here.
 
 ### The other commands
 
@@ -194,6 +275,7 @@ bun run conformance    # run the three Meterless conformance suites against OUR 
 bun run recon          # the listing-side invariant: nothing published without supported evidence
 bun run determinism    # two runs, compared entry by entry (the decisions, the values, the ids)
 bun run zetaris:selftest  # the Zetaris client against the published REST contract, end to end
+bun run avc:selftest       # escrow -> settlement -> certificate, verified from its own bytes
 ```
 
 `bun run zetaris:selftest` is the sponsor-integration gate: it drives the published
@@ -219,6 +301,7 @@ hackathon starter uses, and it is how the engine-usage line of the rubric gets r
 | `bun run conformance` | the three published conformance suites (`bun vendor/meterless/<engine>/conformance/runner.ts`) | H-MEM 13/13 · World Model 8/8 · Markovian 8/8 — **our own scores**, on our own implementations in `src/engines/`, recorded in [`evidence/conformance-ours.txt`](./evidence/conformance-ours.txt). The sponsors' reference scores are a separate file and are never presented as ours. |
 | `bun run determinism` | the same swarm, twice, compared entry by entry | the engines' ids come back identical — memory ids, entity ids, event ids, content ids |
 | `bun run recon` | the listing-side invariant — nothing published without supported, attributed evidence | the **World Model** audit trail is what it reads |
+| `bun run avc:selftest` | escrow lock → claim → settle → certificate issue → independent verification | the **World Model** canonical record the settlement is written onto |
 
 The swarm writes one JSONL trace per run under `logs/`, so every listing decision is
 reproducible and auditable.
@@ -292,9 +375,11 @@ the specification, and any feature can be re-run from its prompt.
 
 | Step | Feature | Prompt that specified it | Acceptance | Result |
 |---|---|---|---|---|
-| **P0** | the listing swarm, end to end: tracer, orchestrator, the five roles, the LLM registry, `POST /run` | [`cursor-prompts/p0-scaffold-wiring.md`](./cursor-prompts/p0-scaffold-wiring.md) | `bunx tsc --noEmit`; `bun run swarm`; `--input` capture; `POST /run`; two runs decision-identical | **pass** — 4 fixture paths (accept / hold / revise / fallback), 36-entry trace, three captured responses, `tsc` exit 0 |
+| **P0** | the listing swarm, end to end: tracer, orchestrator, the five roles, the LLM registry, `POST /run` | [`cursor-prompts/p0-scaffold-wiring.md`](./cursor-prompts/p0-scaffold-wiring.md) | `bunx tsc --noEmit`; `bun run swarm`; `--input` capture; `POST /run`; two runs decision-identical | **pass** — 4 fixture paths (accept / hold / revise / fallback), a 36-entry full-run trace, three captured example runs (10/11/10 entries), `tsc` exit 0 |
 | **P1–P3** | the three Meterless engines, written from the sponsors' contracts | [`p1-hmem-engine.md`](./cursor-prompts/p1-hmem-engine.md) · [`p2-world-model-engine.md`](./cursor-prompts/p2-world-model-engine.md) · [`p3-markovian-engine.md`](./cursor-prompts/p3-markovian-engine.md) | `bun run scripts/conformance.ts` — each sponsor's suite against **our** module | **pass** — H-MEM 13/13, World Model 8/8, Markovian 8/8 |
 | **P4–P5** | the roles and the loops, wired to the engines — the seam that makes the engines part of the product rather than a shelf | [`p4-five-agents.md`](./cursor-prompts/p4-five-agents.md) · [`p5-orchestrator-escalation.md`](./cursor-prompts/p5-orchestrator-escalation.md) | `bunx tsc --noEmit`; `bun run swarm`; `bun run determinism`; the four paths unchanged | **pass** — Markovian expands the plan (carryover proven: 3 buckets over 2 chunks), H-MEM stores/recalls/cites and is taught by the critic, the World Model carries the canonical record and the decision; `tsc` exit 0; the swarm still takes accept / hold / revise / fallback |
+| **P6** | the Zetaris federated pull — the listings arrive over the published REST contract, not from a file | [`p6-zetaris-adapter.md`](./cursor-prompts/p6-zetaris-adapter.md) | `bun run zetaris:selftest`; `bun run swarm`; the four paths unchanged | **pass** — 40 HTTP requests over the published contract against a protocol-compatible local server; the pull is the first trace line; the file loader is the declared fallback, and a fallback run is marked degraded |
+| **P7** | the money path — escrow settlement, and the certificate the settlement issues | [`p7-avc-on-settle.md`](./cursor-prompts/p7-avc-on-settle.md) | `bun run avc:selftest` | **pass** — no certificate before `settled`; the certificate verifies from its own bytes; a tampered certificate is refused and derives a different id; the key is read from the environment and the code has no default |
 
 ### Toolchain check
 

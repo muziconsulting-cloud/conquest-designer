@@ -75,6 +75,15 @@ Full spec: [`docs/AVC-SPEC.md`](./docs/AVC-SPEC.md).
   `action`, `input_summary`, `output_summary`, `target_agent`, `confidence`,
   `retry_count`, `status` alongside the internal `AuditRecord` fields. `target_agent` is
   set on every handoff. A judge reads this file to see the collaboration.
+- `src/escrow/index.ts` — the 2-of-2 escrow. One escrow, in-repo. The **settle**
+  transition is the only transition that may issue a certificate.
+- `src/avc/certificate.ts` · `sign.ts` · `verify.ts` · `store.ts` — the certificate.
+  **Issue only on `settled`**; the certificate carries **exactly three facts** (who /
+  what was paid / what it bought) and never a valuation, a score or a token; the id is
+  **content-derived**; the signature is **detached** and verifies **without the issuer**;
+  the signing key comes from `Bun.env` (`AVC_PRIVATE_KEY`, `AVC_PUBLIC_KEY`) and **there
+  is no default key** — a missing key fails loudly. Never log a key, never write one to
+  disk, never inline one in the source.
 - `p11` is **not optional**: three real output examples, the anti-hardcode audit, the
   documentation audit, and the clean-clone proof. Never cut it.
 - `.cursor/rules/conquest.mdc` — the authoritative code-quality contract (no new deps,
@@ -232,9 +241,16 @@ DECK.md DEMO.md            GENERATED POST-BUILD from the running app (p11)
   timestamps, the trace id/path, and the Markovian engine's random run uuid. Decisions,
   reconciled values, content ids, memory ids, entity ids and event ids are stable.
 
-**Next move:** P6 (the Zetaris client) → P7/P8 (the money path: inbound x402, escrow,
-the AVC) → P9 (the listing surface) → P10 (the LLM seam's hosted path) → **P11**, one
-step at a time, with the RUNBOOK's gates. P11 is the submission-integrity
+**Next move:** P8 (the self-listing protocol — the agent lists itself, declares its own
+price and holds its own certificate) → P9 (the listing surface) → P10 (the LLM seam's
+hosted path) → **P11**, one step at a time, with the RUNBOOK's gates.
+
+**Done so far:** P0 (the swarm) · P1–P3 (the three engines, written from the sponsors'
+contracts, green on their own suites) · P4/P5 (the roles on the engines, one seam) ·
+P6 (the Zetaris client against the published REST contract) · P7 (the money path: the
+2-of-2 escrow, and the AVC issued only on `settled`, verifiable from its signed bytes).
+**Still not built:** the UI (P9), the self-listing protocol (P8), the hosted LLM path
+(P10), and the two artifacts (`DECK.pdf`, `demo/demo.mp4`). P11 is the submission-integrity
 step: three real output examples, the anti-hardcode audit, the documentation audit and
 the clean-clone proof — and the regeneration of the real `DECK.md` and `DEMO.md`.
 

@@ -49,12 +49,12 @@ Sorted cheapest-big-number first. "Impact dominates" (30, tie-breaker) outranks 
 | 1 | ~~**README** with impact statement + pre-existing declaration + swarm arch~~ | Impact, gates | ~~+8–12~~ | low | **DONE 10-21** |
 | 2 | ~~**SPONSORS.md** — honest deviation + Apache-2.0 attribution~~ | Sponsor (gate) | ~~+2–3~~ | low | **DONE 10-21** |
 | 3 | ~~**Implement H-MEM + World Model + Markovian in our code; go green against the same suites**~~ | Sponsor, Technical | ~~+3–4~~ | med | **DONE 10-22** — 13/13, 8/8, 8/8 on OUR modules (`evidence/conformance-ours.txt`) |
-| 4 | ~~**In-window swarm build** — listings-only roster, real JSONL traces, fallback mode~~ | Technical | ~~+10–14~~ | high | **DONE 10-22** — P0: four paths, 36-entry traces, `POST /run`; P4/P5: the roles now run on the engines |
-| 5 | **AVC + escrow settle hook** — ownership transfer not cash-out | Technical, Innovation | **+6–9** | med | Oct 22+ |
+| 4 | ~~**In-window swarm build** — listings-only roster, real JSONL traces, fallback mode~~ | Technical | ~~+10–14~~ | high | **DONE 10-22** — P0: four paths, a 36-entry full-run trace, `POST /run`; P4/P5: the roles now run on the engines |
+| 5 | ~~**AVC + escrow settle hook** — ownership transfer not cash-out~~ | Technical, Innovation | ~~+6–9~~ | med | **DONE 10-22** — P7: 2-of-2 escrow in-repo, the AVC is issued **only** on `settled`, content-derived id, detached Ed25519 signature, verifies from its signed bytes (`bun run avc:selftest`) |
 | 6 | **Demo video + deck** — run the workflow, don't narrate it | Demo | **+12–14** | med | Oct 22+ |
 | 7 | **Listing surface** — a stranger can list + receive an AVC | Product/UX | **+6–7** | med | Oct 22+ |
 | 8 | **Impact evidence** — named user + live URL + number | Impact | **+6–10** | low-med | Oct 22+ |
-| 9 | **Zetaris adapter** against Zetaris's **published REST contract** (`OpenSqlQuery` → `PageSqlQuery` → `CloseSqlQuery`), running against our data API | Sponsor | **+2–3** | med | Oct 22+ |
+| 9 | ~~**Zetaris adapter** against Zetaris's **published REST contract** (`OpenSqlQuery` → `PageSqlQuery` → `CloseSqlQuery`), running against our data API~~ | Sponsor | ~~+2–3~~ | med | **DONE 10-22** — P6: the client speaks the published contract over HTTP (40 requests per pull), against a protocol-compatible local server; the file loader is the declared fallback |
 | 10 | **Chase Zetaris shared event instance creds** (Zetaris Help channel) — would convert the deviation into a live integration | Sponsor | **+3–5** | low | **any time, async** |
 | 11 | **Get the Meterless provider credential** (account + credit + base URL + `NEMOTRON_MODEL`) when the organiser links land — turns the Nemotron path from declared-pending into live, and is the single biggest **Sponsor** swing | Sponsor | **+2–3** | low | **async, organiser-gated** |
 
@@ -310,26 +310,45 @@ otherwise.
 
 | Criterion | Max | Now | Reason | Artifact |
 |---|---|---|---|---|
-| Technical Execution | 20 | **9** | The swarm runs end to end and the engines are under it, not beside it: `src/engines/session.ts` is the one seam, the roles store/recall/cite/record/learn on it, and the run is reproducible entry by entry (`bun run determinism`). The money path (escrow, AVC) is still unbuilt — that is the honest cap. | `src/engines/`, `src/agents/`, `src/orchestrator/`, `scripts/determinism.ts`, `logs/trace-20261022-001..004.jsonl` |
+| Technical Execution | 20 | **12** | The swarm runs end to end and the engines are under it, not beside it: `src/engines/session.ts` is the one seam, the roles store/retrieve/cite/record/learn on it, and the run is reproducible entry by entry (`bun run determinism`). **The money path is built (P7):** the 2-of-2 escrow is in-repo, and the AVC is issued **only** on `settled`, verifiable from its signed bytes. The honest cap now is the **surface** — there is no UI and no live x402 rail. | `src/engines/`, `src/agents/`, `src/orchestrator/`, `src/escrow/`, `src/avc/`, `src/settlement/`, `scripts/determinism.ts`, `scripts/avc-selftest.ts`, `logs/trace-20261022-001..004.jsonl` |
 | Sponsor Tech Integration | 10 | **7** | **Our own** implementations of all three engines, green on the sponsors' own suites: H-MEM 13/13, World Model 8/8, Markovian 8/8, exit 0, local, no keys — and the roles run on them. The gap left is the Meterless *provider* credential (organiser-gated) and the Zetaris live instance (declared deviation). | `evidence/conformance-ours.txt`, `src/engines/`, `SPONSORS.md` |
-| Innovation & Creativity | 15 | **6** | The exchange frame, the AVC as the product, and now the thing that makes it more than a plan: an exchange whose critic **teaches the memory engine** what survived the challenge, so the next run recalls differently. | `src/agents/conflict-critic.ts`, `docs/AVC-SPEC.md` |
+| Innovation & Creativity | 15 | **8** | The exchange frame, the AVC as the product, and now the thing that makes it more than a plan: an exchange whose critic **teaches the memory engine** what survived the challenge, and a certificate a third party can verify without asking us — because the id is the content's address and the signature is checked against a published key. | `src/agents/conflict-critic.ts`, `src/avc/`, `docs/AVC-SPEC.md` |
 | Impact & Real-World Relevance | 30 | **11** | The impact statement and the pre-existing declaration are published; the swarm's real output is now public and reproducible. Still no named user, no live URL, no number. | `README.md`, `docs/AVC-SPEC.md` |
-| Product & UX | 10 | **2** | `POST /run` and the CLI exist and work; the human-facing listing surface (P9) is not built. | `src/server.ts`, `src/index.ts` |
+| Product & UX | 10 | **4** | `POST /run`, the CLI, and the money path over HTTP (`POST /settle`, `GET /certificate/:id`, `GET /.well-known/avc-jwks.json`) all work; the human-facing listing surface (P9) is still not built. | `src/server.ts`, `src/settlement/`, `src/index.ts` |
 | Demo (video/deck) | 15 | **0** | Still no `demo/demo.mp4`, no `DECK.pdf`. Binary-ish: missing video = −15. | `docs/DEMO-draft.md`, `docs/DECK-draft.md` (plans only) |
-| **Total** | **100** | **~35** | Up from ~20. The build is real now; the remaining points are the money path, the surface and the two artifacts. | |
+| **Total** | **100** | **~43** | Up from ~20. The build is real now, and the money path is built; the remaining points are the surface, the hosted path, the demo and the deck. | |
 
 ### What was built this session
 
 - **P0 — the swarm.** `src/tracer.ts`, `src/orchestrator/`, `src/agents/` (the five roles),
   `src/engine/` (registry + Meterless HTTP adapter + the deterministic offline renderer),
   `src/loading.ts`, `src/index.ts`, `src/server.ts`, `data/sources.json`, and the three
-  scripts. Four fixture paths, 36-entry traces, `POST /run`, `scripts/verify-paths.ts`
-  PASS, `scripts/recon.ts` PASS. (`0e87f82`)
+  scripts. Four fixture paths, a 36-entry full-run trace (plus three captured example runs of
+  10/11/10 entries), `POST /run`, `scripts/verify-paths.ts` PASS, `scripts/recon.ts` PASS.
+  (`0e87f82`)
 - **P1–P3 — the three engines, written from the sponsors' contracts.** `src/engines/hmem/`,
   `src/engines/world-model/`, `src/engines/markovian/`. `bun run scripts/conformance.ts`
   → H-MEM 13/13, World Model 8/8, Markovian 8/8, exit 0. The transcript is
   `evidence/conformance-ours.txt`; the sponsors' reference scores are a separate file and
   are never presented as ours. (`94dc258`)
+- **P6 — the Zetaris client, against the published REST contract.** `src/zetaris/adapter.ts`
+  (Bearer auth, `X-Org-ID`, a fresh UUID `X-Request-ID` per request, the query closed in a
+  `finally`), `src/zetaris/local-server.ts` (a protocol-compatible server for the local
+  stack), `src/zetaris/reader.ts`, `src/zetaris/tables.ts`, `src/zetaris/pull.ts`,
+  `src/loading.ts` (`loadFlatListings()`), and `scripts/zetaris-selftest.ts`. The pull is
+  the **first trace line** of every run: 40 HTTP requests, 4 listings, protocol
+  `zetaris-sql/v1.0`. The file loader remains the declared fallback, and a fallback run
+  is marked degraded in the trace. (`40302fb`)
+- **P7 — the money path.** `src/escrow/index.ts` (the 2-of-2 escrow: `lock` → `pending`,
+  both-confirm → `settled`, `dispute` → `suspense`, `claim` → `claimed`, `settle` →
+  `settled`, whole rand only), `src/avc/certificate.ts`, `src/avc/sign.ts`,
+  `src/avc/verify.ts`, `src/avc/store.ts`, `src/settlement/index.ts` and
+  `scripts/avc-selftest.ts`. **No certificate exists before `settled`** — the issuer
+  refuses a trade that has not settled. The certificate carries exactly three facts
+  (who / what was paid / what it bought), its id is content-derived, and it carries a
+  detached Ed25519 signature that a third party can check against the published JWKS
+  **without asking us**. The signing key comes from the environment and the code has no
+  default. `bun run avc:selftest` PASS.
 - **P4/P5 — the seam.** `src/engines/session.ts`; the volume planner expands the pull plan
   on Markovian (LST-0003: 3 buckets over 2 chunks, so the carryover is real); the
   reconciler stores and recalls on H-MEM and cites the memory ids its answer stands on;
@@ -358,10 +377,11 @@ otherwise.
 
 ### The next four moves, in order
 
-1. **P6** — the Zetaris client against the published REST contract (the client exists as
-   an interface; the protocol implementation does not).
-2. **P7/P8** — the money path: inbound x402, the 2-of-2 escrow, the AVC on `settled`.
-3. **P9** — the listing surface a stranger can use, plus the certificate view.
+1. **P8** — the self-listing protocol: the agent lists itself, declares its own price
+   and holds its own certificate (the listing token is single-use).
+2. **P9** — the listing surface a stranger can use, plus the certificate view.
+3. **P10** — the hosted path: the Meterless provider credential and the Nemotron
+   routing id, so the seam stops being the offline adapter.
 4. **P11** — the submission-integrity step: three real output examples, the anti-hardcode
    audit, the documentation audit, the clean-clone proof, and the **real** `DECK.md` and
    `DEMO.md` — then the two artifacts (`DECK.pdf`, `demo/demo.mp4`) that are worth 15

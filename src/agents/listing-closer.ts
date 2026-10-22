@@ -264,6 +264,7 @@ export async function recordListing(input: RecordInput): Promise<RecordResult> {
 
   // A conflict the critic resolved is part of the canonical record: what disagreed,
   // and which position won.
+  const eventsBefore = world.events().length
   for (const conflict of recon.conflicts) {
     await world.assertFact({
       about: entity.id,
@@ -279,7 +280,7 @@ export async function recordListing(input: RecordInput): Promise<RecordResult> {
   }
 
   const events = world.events()
-  const eventIds = events.slice(-6).map((event) => event.id)
+  const eventIds = events.slice(eventsBefore).map((event) => event.id)
   const audit = world.audit()
 
   return {

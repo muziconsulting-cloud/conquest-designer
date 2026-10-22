@@ -7,6 +7,7 @@
 
 import { runExchange } from './orchestrator/index.ts'
 import { createTraceSink } from './orchestrator/trace.ts'
+import { settleTrade, verifyIssued, publishedJwks } from './settlement/index.ts'
 
 const args = process.argv.slice(2)
 let port = 3000
@@ -23,6 +24,56 @@ const server = Bun.serve({
 
     if (url.pathname === '/health') {
       return Response.json({ ok: true, service: 'conquest-exchange' })
+    }
+
+    // The verification key, published so a third party can verify a certificate
+    // without trusting us.
+    if (url.pathname === '/.well-known/avc-jwks.json' && request.method === 'GET') {
+      try {
+        return Response.json(publishedJwks())
+      } catch (error) {
+        return Response.json(
+          { error: error instanceof Error ? error.message : 'no verification key is configured' },
+          { status: 501 },
+        )
+      }
+    }
+
+    // Settle a trade: lock -> claim -> seller paid -> certificate issued.
+    if (url.pathname === '/settle' && request.method === 'POST') {
+      let body: unknown
+      try {
+        body = await request.json()
+      } catch {
+        return Response.json({ error: 'the request body is not JSON' }, { status: 400 })
+      }
+      try {
+        const { trade, certificate } = await settleTrade(body as Record<string, never>)
+        return Response.json({
+          trade: {
+            trade_id: trade.tradeId,
+            listing_id: trade.listingId,
+            state: trade.state,
+            amount_zar: trade.amountZar,
+            payment_ref: trade.paymentRef,
+            settled_at: trade.settledAt,
+          },
+          certificate,
+        })
+      } catch (error) {
+        return Response.json(
+          { error: error instanceof Error ? error.message : 'the trade could not be settled' },
+          { status: 400 },
+        )
+      }
+    }
+
+    // Look up an issued certificate, and verify it from its own bytes.
+    if (url.pathname.startsWith('/certificate/') && request.method === 'GET') {
+      const certificateId = decodeURIComponent(url.pathname.slice('/certificate/'.length))
+      const result = await verifyIssued(certificateId)
+      if (!result.found) return Response.json(result, { status: 404 })
+      return Response.json(result)
     }
 
     if (url.pathname === '/run' && request.method === 'POST') {

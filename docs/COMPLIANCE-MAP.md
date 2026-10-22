@@ -55,6 +55,18 @@ run Nemotron unless a recorded run names the routing id.**
 | An evaluator critiques another agent's work | The conflict critic critiques the closer's proposal; the telemetry auditor critiques the run. Both critiques are in the trace. |
 | Output is revised or approved based on that critique | `collaboration.revision_count` and `feedback_loop_completed` are reported per run, and the `revise` step in the trace names the critique it is answering. |
 
+### The money path (P7)
+
+| Item | Where |
+|---|---|
+| The escrow is implemented in this repository | `src/escrow/index.ts` — the 2-of-2 rail from `docs/AVC-SPEC.md` §5: `lock` → `pending`, both parties confirm → `settled`, `dispute` → `suspense`, `claim` → `claimed`, `settle` → `settled`, `cancel` → `cancelled`. Whole rand only. No token, no chain, no network. |
+| The certificate is issued **only** on settlement | `src/avc/certificate.ts` — `issueForSettledTrade()` refuses any trade whose state is not `settled`. `bun run avc:selftest` asserts it (`no certificate before the trade settles`). |
+| It carries exactly three facts | `who` (agent id, agent key hash, wallet address) · `whatWasPaid` (amount, currency, payment reference, method, time) · `whatItBought` (listing, term, access grant). No score, no valuation verdict, no fourth fact. |
+| It verifies **without the issuer** | `src/avc/verify.ts` — verification takes the certificate's signed bytes and the public key and returns true/false. It never asks the issuer. The key is published at `GET /.well-known/avc-jwks.json`, and the certificate points at it in `proof.verify`. |
+| A tampered certificate fails | The id is **content-derived** (the attested body + the signed payload), so an edited certificate no longer derives its own id; and the body is checked against the signed payload. Both failures are reported, and `bun run avc:selftest` prints the tampered variant failing verification. |
+| The key comes from the environment, and there is no default | `AVC_PRIVATE_KEY` / `AVC_PUBLIC_KEY` in `Bun.env` (`.env.example` documents both). The library throws when the key is missing; the selftest generates a **throwaway in-memory keypair** and says so. No key is committed, logged or written to disk by the code. |
+| What is **not** claimed | There is no live x402 payment rail yet (the payment reference is recorded, the rail itself is not), no UI (P9), and the settlement is a local in-process escrow. |
+
 ### Logs
 
 | Item | Where |
