@@ -145,10 +145,20 @@ $ bun run scripts/recon.ts             # the listing-side invariant
 PASS no listing is published without supported, attributed evidence
 ```
 
-**What is not built yet:** the three Meterless engines (P1–P3), the escrow settlement and
-certificate issue (P7–P8), and the UI. `bun run conformance` says **PENDING** for each
-engine until its implementation exists — it never borrows the sponsors' reference score
-and reports it as ours.
+**The three Meterless engines are built and green.** `bun run conformance` runs the
+sponsors' own suites against **our** implementations in `src/engines/`:
+
+| Engine | What it does here | Score |
+|---|---|---|
+| **H-MEM** | tiered memory with provenance, the hybrid ranking formula, the conflict gate, dreaming behind an approval boundary | **13/13** |
+| **World Model** | the canonical listing/trade event log — stable ids, bitemporal edges, idempotent ingest, an audit trail | **8/8** |
+| **Markovian** | bounded-context long runs — flat per-step cost, the marker protocol, the `[OVERLAP]` window, honest token labelling | **8/8** |
+
+`src/engines/` is written from the sponsors' published contracts, not copied from their
+reference implementations — `vendor/` is gitignored and fetched at build time.
+
+**What is not built yet:** the escrow settlement and the certificate issue (P7–P8), and
+the UI (P9).
 
 ### The other commands
 
@@ -171,7 +181,7 @@ hackathon starter uses, and it is how the engine-usage line of the rubric gets r
 | Command | What runs behind it | Meterless engine |
 |---|---|---|
 | `bun run swarm` | evidence reconciliation → canonical listing/trade event log → bounded long-run cadence | **H-MEM** · **World Model** · **Markovian** |
-| `bun run conformance` | the three published conformance suites (`bun vendor/meterless/<engine>/conformance/runner.ts`) | H-MEM 13/13 · Markovian 8/8 · World Model 8/8 — **the sponsors' reference scores**, recorded in [`evidence/conformance-reference.txt`](./evidence/conformance-reference.txt). Our own scores land in `evidence/conformance-ours.txt` when P1–P3 are done. |
+| `bun run conformance` | the three published conformance suites (`bun vendor/meterless/<engine>/conformance/runner.ts`) | H-MEM 13/13 · World Model 8/8 · Markovian 8/8 — **our own scores**, on our own implementations in `src/engines/`, recorded in [`evidence/conformance-ours.txt`](./evidence/conformance-ours.txt). The sponsors' reference scores are a separate file and are never presented as ours. |
 | `bun run recon` | the pre-existing product's `writeLedger` rail and supply invariant | — (pre-existing product API) |
 
 The swarm writes one JSONL trace per run under `logs/`, so every listing decision is
@@ -244,6 +254,7 @@ the specification, and any feature can be re-run from its prompt.
 | Step | Feature | Prompt that specified it | Acceptance | Result |
 |---|---|---|---|---|
 | **P0** | the listing swarm, end to end: tracer, orchestrator, the five roles, the LLM registry, `POST /run` | [`cursor-prompts/p0-scaffold-wiring.md`](./cursor-prompts/p0-scaffold-wiring.md) | `bunx tsc --noEmit`; `bun run swarm`; `--input` capture; `POST /run`; two runs decision-identical | **pass** — 4 fixture paths (accept / hold / revise / fallback), 35-entry trace, three captured responses, `tsc` exit 0 |
+| **P1–P3** | the three Meterless engines, written from the sponsors' contracts | [`p1-hmem-engine.md`](./cursor-prompts/p1-hmem-engine.md) · [`p2-world-model-engine.md`](./cursor-prompts/p2-world-model-engine.md) · [`p3-markovian-engine.md`](./cursor-prompts/p3-markovian-engine.md) | `bun run scripts/conformance.ts` — each sponsor's suite against **our** module | **pass** — H-MEM 13/13, World Model 8/8, Markovian 8/8 |
 
 ### Toolchain check
 

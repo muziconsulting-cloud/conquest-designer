@@ -202,13 +202,16 @@ DECK.md DEMO.md            GENERATED POST-BUILD from the running app (p11)
 - **Two rehearsals ran on throwaway copies outside the repo** (P1 → 13/13, P2 → 8/8, both
   `tsc` clean) — proof the prompts work, and the source of the P3 rewrite. Pre-window,
   discarded, **not in the repository**; disclosed in `PRE-EXISTING.md` and the README.
-- **`bun run conformance` reports PENDING** for each engine until our implementation
-  exists. It never borrows the sponsors' reference score.
+- **P1–P3 are done: the three Meterless engines, written from the sponsors' contracts**
+  in `src/engines/{hmem,world-model,markovian}/`. `bun run scripts/conformance.ts` runs
+  each sponsor's suite against **our** module: **H-MEM 13/13, World Model 8/8,
+  Markovian 8/8** — recorded in `evidence/conformance-ours.txt`. The sponsors' reference
+  scores live in a separate file and are never presented as ours.
 
-**Next move:** P1 → P2 → P3 (the three Meterless engines, to 13/13, 8/8, 8/8 on **our**
-code) → P4/P5 (the roles and the loops, already largely built — wire them to the
-engines) → P6 → P7 → P8 (the money path: inbound x402, escrow, the AVC) → P9 → P10 →
-**P11**, one step at a time, with the RUNBOOK's gates. P11 is the submission-integrity
+**Next move:** P4/P5 (wire the roles and the loops to the engines — the roles are
+built, the engine seam is built, the join between them is not) → P6 → P7 → P8 (the
+money path: inbound x402, escrow, the AVC) → P9 → P10 → **P11**, one step at a time,
+with the RUNBOOK's gates. P11 is the submission-integrity
 step: three real output examples, the anti-hardcode audit, the documentation audit and
 the clean-clone proof — and the regeneration of the real `DECK.md` and `DEMO.md`.
 
