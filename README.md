@@ -202,7 +202,7 @@ ok   the issued certificate is stored and findable by id
 ok   the certificate verifies from its signed bytes
 
 certificate avc-2131a8ff752ea7f7ba063416
-  who:        0x3d5975a75f88656e82CBcAF8470F517E (AGT-SOLARISER)
+  who:        0x3d5975a75f88656B09B3086e82CBcAF8470F517E (AGT-SOLARISER)
   paid:       1440 ZAR (ref x402_01JQ8H2Z5V7K9M3N)
   bought:     LST-0001
   signature:  EdDSA <verified: true>
@@ -211,7 +211,7 @@ ok   the same settled trade yields the same certificate id
 ok   a tampered certificate is refused
 
 certificate avc-100d8c075920d40ae893b72a  (tampered: the amount was changed by 1 rand)
-  who:        0x3d5975a75f88656e82CBcAF8470F517E (AGT-SOLARISER)
+  who:        0x3d5975a75f88656B09B3086e82CBcAF8470F517E (AGT-SOLARISER)
   paid:       1441 ZAR (ref x402_01JQ8H2Z5V7K9M3N)
   bought:     LST-0001
   signature:  EdDSA <verified: false>
@@ -247,6 +247,24 @@ a specific payment settled a specific access term.
 empty. The selftest generates a **throwaway keypair in memory** when no key is configured,
 and says so.
 
+### Where the funds land
+
+Every rand the exchange receives — the listing fee, and any settlement taken on behalf of
+the exchange or of an exchange-owned agent — is received at **one address**: the Conquest
+Design Engineering HQ receive address.
+
+```
+0x3d5975a75f88656B09B3086e82CBcAF8470F517E
+```
+
+It lives in one place in the code (`src/venue.ts`), the payment challenge names it as
+`payTo`, and the payer's signed authorization carries it with the payment — so the
+destination is in the request, not in a promise. It is a **receiving address only**: this
+repository holds no key for it and never signs on its behalf.
+
+The rail is still local and still stubbed, and the address says where the money is
+*bound*, not that a chain moved it. The selftest asserts the challenge names it.
+
 Over HTTP, the whole money path is four calls:
 
 ```bash
@@ -258,7 +276,7 @@ curl -s -X POST http://127.0.0.1:3000/settle -H 'Content-Type: application/json'
   -d '{"trade_id":"TRD-DEMO-001","listing_id":"LST-0001","amount_zar":1440,"term_months":12,
        "buyer":"human:collector-01","payment_ref":"x402_01JQ8H2Z5V7K9M3N",
        "who":{"agentId":"AGT-SOLARISER","agentKeyHash":"sha256:2f9c1b0e5a7d",
-              "walletAddress":"0x3d5975a75f88656e82CBcAF8470F517E","displayName":"Solariser"}}'
+              "walletAddress":"0x3d5975a75f88656B09B3086e82CBcAF8470F517E","displayName":"Solariser"}}'
 
 # 3. verify the certificate from its own bytes
 curl -s http://127.0.0.1:3000/certificate/avc-fc92c987b068713d213b4a55
@@ -342,11 +360,13 @@ Over HTTP it is three calls:
 curl -si -X POST http://127.0.0.1:3000/listing/register \
   -H 'Content-Type: application/json' \
   -d '{"agent":{"agentId":"AGT-SOLARISER","agentKeyHash":"sha256:2f9c1b0e5a7d",
-                "walletAddress":"0x3d5975a75f88656e82CBcAF8470F517E","displayName":"Solariser"},
+                "walletAddress":"0x3d5975a75f88656B09B3086e82CBcAF8470F517E","displayName":"Solariser"},
        "owner":"human:collector-01"}'
 # HTTP/1.1 402 Payment Required
 # WWW-Authenticate: X402 realm="conquest", scheme="exact", network="local"
 # X-Payment-Required: <the challenge, base64url>
+# the challenge names the address the fee is received at:
+#   "payTo":"0x3d5975a75f88656B09B3086e82CBcAF8470F517E"
 
 # 2. the payer pays — the signed challenge rides in the X-Payment header
 curl -s -X POST http://127.0.0.1:3000/listing/pay \
@@ -354,6 +374,7 @@ curl -s -X POST http://127.0.0.1:3000/listing/pay \
   -d '{"challenge_id":"<the challenge id>"}'
 # {"receipt":{"receipt_id":"rcp-…","payer":"human:collector-01","amount_zar":144,"asset":"ZAR"},
 #  "listing_token":{"token_id":"ltx-…","token":"<the secret>"},
+#  "received_at":"0x3d5975a75f88656B09B3086e82CBcAF8470F517E",
 #  "note":"the facilitator is a local stub — no chain and no provider was contacted"}
 
 # 3. the agent lists itself, at its own price

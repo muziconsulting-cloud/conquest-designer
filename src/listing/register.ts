@@ -13,6 +13,7 @@
 
 import { createHash } from 'node:crypto'
 import type { AgentIdentity } from '../types.ts'
+import { RECEIVING_ADDRESS, VENUE_NAME } from '../venue.ts'
 import { buildPaymentRequest } from './payment.ts'
 import type { PaymentReceipt, PaymentRequest } from './payment.ts'
 
@@ -28,6 +29,8 @@ export interface Registration {
   status: 'registered' | 'paid'
   /** The receipt that paid the fee. Null until the payment verifies. */
   receiptId: string | null
+  /** Where the fee is received — the venue's address. */
+  receivedAt: string
 }
 
 /** The registry of registrations. One per exchange process. */
@@ -47,6 +50,7 @@ export class ListingRegistry {
       createdAt: input.at,
       status: 'registered',
       receiptId: null,
+      receivedAt: RECEIVING_ADDRESS,
     }
     this.registrations.set(registrationId, registration)
     return registration
@@ -94,7 +98,7 @@ export function registerAgent(input: {
   const payment = buildPaymentRequest({
     registrationId: registration.registrationId,
     amountZar: LISTING_FEE_ZAR,
-    description: `Listing fee for ${input.agent.displayName} — one listing`,
+    description: `Listing fee for ${input.agent.displayName} — one listing, received at ${VENUE_NAME}`,
     resource: input.resource,
     at: input.at,
   })

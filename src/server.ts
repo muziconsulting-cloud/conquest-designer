@@ -19,6 +19,7 @@ import { ListingTokenBook } from './listing/token.ts'
 import { LocalFacilitator } from './listing/payment.ts'
 import type { PaymentChallenge, PaymentResponse } from './listing/payment.ts'
 import { selfList } from './listing/self-list.ts'
+import { RECEIVING_ADDRESS, VENUE_NAME } from './venue.ts'
 import type { AgentIdentity } from './types.ts'
 
 /** The listing state of this process. One registry, one token book, one facilitator. */
@@ -82,6 +83,8 @@ const server = Bun.serve({
             amount_zar: trade.amountZar,
             payment_ref: trade.paymentRef,
             settled_at: trade.settledAt,
+            received_at: RECEIVING_ADDRESS,
+            received_by: VENUE_NAME,
           },
           certificate,
         })
@@ -183,6 +186,7 @@ const server = Bun.serve({
           verified_at: verified.receipt.verifiedAt,
         },
         listing_token: { token_id: token.tokenId, token: token.secret },
+        received_at: RECEIVING_ADDRESS,
         note: 'the facilitator is a local stub — no chain and no provider was contacted',
       })
     }

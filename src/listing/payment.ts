@@ -17,9 +17,13 @@
  *    verified, so one payment can never buy two listings.
  *  - **The nonce is the receipt's secret.** It is signed, never logged, never carried
  *    on the receipt and never written to disk.
+ *  - **The fee is received at the venue's address.** `payTo` names the address that
+ *    receives every rand the exchange takes, so the payer's signed authorization
+ *    carries the destination with it. The rail is still local and still stubbed.
  */
 
 import { createHash, timingSafeEqual } from 'node:crypto'
+import { RECEIVING_ADDRESS } from '../venue.ts'
 
 // ---------------------------------------------------------------------------
 // The challenge — the server's side of the rail
@@ -91,8 +95,6 @@ const randomNonce = (): string => {
 export const LOCAL_NETWORK = 'local'
 /** The local asset identifier. Not a chain address: no chain is contacted. */
 export const LOCAL_ASSET = 'local:ZAR'
-/** The local sink for the listing fee. Not a chain address. */
-export const LOCAL_PAY_TO = 'local:conquest-listing-fee-sink'
 
 export interface BuildPaymentRequestInput {
   registrationId: string
@@ -127,7 +129,7 @@ export function buildPaymentRequest(input: BuildPaymentRequestInput): PaymentReq
     resource: input.resource,
     description: input.description,
     mimeType: 'application/json',
-    payTo: LOCAL_PAY_TO,
+    payTo: RECEIVING_ADDRESS,
     maxTimeoutSeconds: 600,
     asset: LOCAL_ASSET,
     extra: {

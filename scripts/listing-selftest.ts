@@ -25,6 +25,7 @@ import { ListingRegistry, registerAgent, LISTING_FEE_ZAR } from '../src/listing/
 import { ListingTokenBook } from '../src/listing/token.ts'
 import { LocalFacilitator, createPayer, payChallenge } from '../src/listing/payment.ts'
 import { selfList } from '../src/listing/self-list.ts'
+import { RECEIVING_ADDRESS } from '../src/venue.ts'
 import type { AgentIdentity } from '../src/types.ts'
 
 const failures: string[] = []
@@ -91,6 +92,11 @@ async function buyTheRightToList(input: {
     payment.body.accepts[0]?.extra.decimals === 0 &&
       payment.body.accepts[0]?.maxAmountRequired === String(LISTING_FEE_ZAR),
     `the challenge asks for the whole-rand listing fee (R${LISTING_FEE_ZAR})`,
+  )
+  check(
+    payment.body.accepts[0]?.payTo === RECEIVING_ADDRESS,
+    'the challenge names the venue address that receives the fee',
+    payment.body.accepts[0]?.payTo ?? 'no payTo',
   )
 
   const payer = await createPayer('human:collector-01')
