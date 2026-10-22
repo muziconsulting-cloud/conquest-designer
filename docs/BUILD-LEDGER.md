@@ -450,3 +450,74 @@ engines.
 4. **The two artifacts** — `DECK.pdf` and `demo/demo.mp4` — worth **15 points** and
    currently worth nothing. They are the cheapest points left in the rubric, and the
    demo has to show the **held listing**, not just the happy path.
+
+## Ledger — 2026-10-22 (live, session 5): the exchange has a front door a stranger can read
+
+**P9 is built and green.** The same server that answers `POST /run` now answers pages.
+Server-rendered HTML, no client framework, no bundler, no build step, no npm dependency —
+Bun runs the TypeScript directly and returns the page.
+
+| Criterion | Max | Now | Reason | Artifact |
+|---|---|---|---|---|
+| Technical Execution | 20 | **15** | The money path, the self-listing path **and** the surface are all built and all provable. The surface reads the pipeline's own output — the trace and the in-process escrow and certificate store — and recomputes nothing. The honest cap is still the **absence of a live x402 rail**: the facilitator is a local stub, and that is stated everywhere it is mentioned. | `src/pages/`, `src/server.ts`, `logs/trace-20261022-001..004.jsonl` |
+| Innovation & Creativity | 15 | **9** | Unchanged — the agent naming its own price, and the critic able to hold it, is the sharpest idea and it is built. | `src/listing/self-list.ts` |
+| Product & UX | 10 | **8** | A stranger can now read the exchange without running anything: the listings, one listing in full, the agents, the trace, and the certificate with a **live verify** result — plus a clear "not issued" state for an id that was never issued. The last point is the **demo video** and a real live URL, which is a hosting question, not a build question. | `src/pages/`, `README.md` |
+| Impact & Real-World Relevance | 30 | **11** | Unchanged — the published impact statement and the pre-existing declaration. Still no named user, no live URL, no number. | `README.md`, `docs/AVC-SPEC.md` |
+| Sponsor Tech Integration | 10 | **7** | Unchanged — our three engines green on the sponsors' suites, and the roles run on them. The Meterless *provider* credential and the Zetaris live instance are still open. | `evidence/conformance-ours.txt`, `src/engines/`, `SPONSORS.md` |
+| Demo (video/deck) | 15 | **0** | Still no `demo/demo.mp4`, no `DECK.pdf`. **P9 made the demo possible** — there is now a surface to record — but the artifact itself is still missing, and it is worth 15 points. | `docs/DEMO-draft.md`, `docs/DECK-draft.md` (plans only) |
+| **Total** | **100** | **~50** | Up from ~46. The build is real, the money path, the self-listing path and the surface all work, and the remaining points are the artifacts, the hosted path and the impact evidence. | |
+
+### What was built this session
+
+- **P9 — the operator surface.** `src/pages/layout.ts` (one shared shell, one inline
+  stylesheet, one nav), `src/pages/html.ts` (escaping, the whole-rand formatter, the
+  confidence and term formatters), `src/pages/data.ts` (**the data layer** — it reads the
+  committed JSONL traces and the in-process escrow and certificate store, and nothing else),
+  `src/pages/index.ts` (the exchange at a glance), `src/pages/listings.ts` (the table and
+  the full listing view), `src/pages/avc.ts` (the three facts, the signature, a live verify
+  — and the "not issued" state), `src/pages/agents.ts` (the five agents and what each
+  decided), `src/pages/trace.ts` (the trace, rendered, `?run=<id>` to pick a run). The
+  routes were added to the **same** `Bun.serve` in `src/server.ts`; `POST /run` and every
+  JSON route are untouched.
+- **The trace learned to carry what a page needs.** `src/orchestrator/loops.ts` now writes
+  the agent, the declared price, the term, who declared it, the reconciled price and the
+  revision into the `plan_sources` and `close_listing` details, so the surface reads the
+  pipeline's own output instead of re-deriving it. The four committed traces were
+  regenerated against the current code (10 / 11 / 10 / 36 lines, unchanged) so the
+  committed evidence and the surface agree.
+- **One receiving address, and the docs corrected.** The HQ receive address
+  `0x3d5975a75f88656B09B3086e82CBcAF8470F517E` is now a first-class constant
+  (`src/venue.ts`), the payment challenge names it as `payTo`, the registration records
+  where its fee is received, and the pay and settle responses say it out loud. It is a
+  receiving address only — the repository holds no key for it. The **README** had a
+  hand-typed, truncated copy of the address (32 hex — the HQ address minus a slice). The
+  platform code and the live site were never wrong; only the submission docs were. Fixed,
+  with a selftest assertion that the challenge names the venue address. (`3ad9ae5`)
+
+### Corrected while writing this entry
+
+- **The README carried a malformed wallet address** — 32 hex characters, the HQ address
+  with a slice dropped. It was introduced by my own P7/P8 doc edits and never reached the
+  code, the fixtures or the live site. Found by checking the platform repo: every
+  occurrence in `thegearmerchant` — `src/Config.ts`, `src/conquest/A2A.ts`,
+  `docs/PROMPT_MASTER_INSTRUCTION.md` and the live-site DOM baseline — is the correct
+  40-hex address. Four README occurrences replaced; the certificate id did not move,
+  because the fixture already carried the correct address.
+- **The listing page read the wrong object.** The first assembly of a listing took the
+  *detail* record where it meant to take the *line*, so the listing copy came out empty.
+  Fixed in `src/pages/data.ts` — the page now shows the pipeline's own words.
+
+### The next four moves, in order
+
+1. **P10** — the hosted path: the Meterless provider credential and the Nemotron routing
+   id, so the seam stops being the offline adapter. Organiser-gated; do not claim
+   Nemotron until a recorded run names the routing id.
+2. **P11** — the submission-integrity step: three real output examples, the anti-hardcode
+   audit, the documentation audit, the clean-clone proof, and the **real** `DECK.md` and
+   `DEMO.md`.
+3. **The two artifacts** — `DECK.pdf` and `demo/demo.mp4` — worth **15 points** and
+   currently worth nothing. They are the cheapest points left in the rubric, and the demo
+   has to show the **held listing**, not just the happy path. The surface to record now
+   exists.
+4. **The live URL** — a public address for the surface, which is what the Impact row wants
+   and what a judge will click. Hosting is the only thing between us and that row.

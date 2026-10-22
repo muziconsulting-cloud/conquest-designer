@@ -255,8 +255,8 @@ DECK.md DEMO.md            GENERATED POST-BUILD from the running app (p11)
   timestamps, the trace id/path, and the Markovian engine's random run uuid. Decisions,
   reconciled values, content ids, memory ids, entity ids and event ids are stable.
 
-**Next move:** P9 (the listing surface — the HTML the judge can read) → P10 (the LLM
-seam's hosted path) → **P11**, one step at a time, with the RUNBOOK's gates.
+**Next move:** P10 (the LLM seam's hosted path) → **P11** → the two artifacts, one step at a
+time, with the RUNBOOK's gates.
 
 **Done so far:** P0 (the swarm) · P1–P3 (the three engines, written from the sponsors'
 contracts, green on their own suites) · P4/P5 (the roles on the engines, one seam) ·
@@ -264,8 +264,12 @@ P6 (the Zetaris client against the published REST contract) · P7 (the money pat
 2-of-2 escrow, and the AVC issued only on `settled`, verifiable from its signed bytes) ·
 **P8 (the self-listing protocol: a real 402, a locally stubbed facilitator that verifies
 the request shape and the signature, a single-use listing token, and the agent declaring
-its own price through the ordinary pipeline — where the critic can hold it)**.
-**Still not built:** the UI (P9), the hosted LLM path (P10), and the two artifacts
+its own price through the ordinary pipeline — where the critic can hold it)** ·
+**P9 (the operator surface: server-rendered HTML on the same server, no framework, no
+build step, no dependency — the listings, one listing in full with its critique and its
+trace, the agents, the trace, and the certificate with a live verify; a held listing is
+shown as held, and a certificate that was never issued says so)**.
+**Still not built:** the hosted LLM path (P10), and the two artifacts
 (`DECK.pdf`, `demo/demo.mp4`). P11 is the submission-integrity step: three real output
 examples, the anti-hardcode audit, the documentation audit and the clean-clone proof —
 and the regeneration of the real `DECK.md` and `DEMO.md`.

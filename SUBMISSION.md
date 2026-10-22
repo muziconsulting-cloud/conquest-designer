@@ -108,11 +108,12 @@ read as a claim it has not earned:
 
 | Built and runnable here | Not built yet |
 |---|---|
-| the listing swarm (five roles, one seam, JSONL traces) | the UI (P9) |
-| our own H-MEM / World Model / Markovian, green on the sponsors' suites (13/13, 8/8, 8/8) | a **live** Zetaris instance — no instance was reachable |
-| the Zetaris client over the published REST contract (against a local protocol-compatible server) | a live x402 payment rail and a real payment — the facilitator is a **local stub** |
-| the 2-of-2 escrow, and the AVC issued **only** on `settled`, verifiable from its signed bytes | the hosted LLM path with a real credential — the runs use the deterministic offline adapter |
+| the listing swarm (five roles, one seam, JSONL traces) | a **live** Zetaris instance — no instance was reachable |
+| our own H-MEM / World Model / Markovian, green on the sponsors' suites (13/13, 8/8, 8/8) | a live x402 payment rail and a real payment — the facilitator is a **local stub** |
+| the Zetaris client over the published REST contract (against a local protocol-compatible server) | the hosted LLM path with a real credential — the runs use the deterministic offline adapter |
+| the 2-of-2 escrow, and the AVC issued **only** on `settled`, verifiable from its signed bytes | a **live** public URL for the surface — the server is built and runs |
 | the self-listing protocol: a real 402, a single-use listing token, and the agent declaring its own price through the same critic | |
+| the operator surface: server-rendered HTML, no framework, no build step — the listings, one listing in full with its critique and its trace, the agents, the trace, and the certificate with a live verify | |
 
 ## 6 · Track
 

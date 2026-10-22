@@ -136,7 +136,8 @@
     "The x402 payment rail is x402-shaped but local: the registration answers a real 402 with the challenge in the headers and the payment is verified against a LOCAL FACILITATOR STUB that checks the request shape and the Ed25519 signature in process. No chain, no payment provider, no money moved, no key of ours. There is no live x402 rail.",
     "NVIDIA inference reaches us through the Meterless fleet; the hosted endpoint is pending organiser links and a deterministic fallback is used instead.",
     "Values are synthetic; the exchange logic, escrow settlement and certificate issuance are real, but no production money moves in the demo.",
-    "There is no UI yet (the listing surface is the next step); everything is reachable over HTTP and the CLI.",
+    "There is no live public URL for the surface yet (the server is built and runs locally); everything is reachable over HTTP, the CLI, and the server-rendered pages.",
+    "The settlement rail is an in-process escrow and the payment facilitator is a local stub — no chain, no provider and no money moved in the demo.",
     "We do not value agents ourselves — the owner declares the price; we record and certify it."
   ]
 }

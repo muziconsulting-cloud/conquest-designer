@@ -101,6 +101,10 @@ export async function runListing(input: ListingRunInput): Promise<ListingOutcome
       fields: plan.fields,
       sources: plan.sources.map((s) => s.id),
       buckets: plan.buckets,
+      agent: listing.agent,
+      declaredPriceZar: listing.declaredPriceZar,
+      termMonths: listing.termMonths,
+      declaredBy: listing.declaredBy,
       engine: {
         name: 'markovian',
         runId: markovian.runId,
@@ -174,7 +178,15 @@ export async function runListing(input: ListingRunInput): Promise<ListingOutcome
       target_agent: 'conflict-critic',
       confidence: recon.confidence,
     },
-    { listingId: listing.listingId, phase: 'draft', contentId: draft.contentId },
+    {
+      listingId: listing.listingId,
+      phase: 'draft',
+      contentId: draft.contentId,
+      agent: listing.agent,
+      declaredPriceZar: listing.declaredPriceZar,
+      termMonths: listing.termMonths,
+      declaredBy: listing.declaredBy,
+    },
   )
 
   // ---- Loop 2: challenge, and answer the challenge ------------------------
@@ -262,6 +274,12 @@ export async function runListing(input: ListingRunInput): Promise<ListingOutcome
       decision,
       contentId: close.contentId,
       fallbackReasons: fallbackState.reasons,
+      agent: listing.agent,
+      declaredPriceZar: listing.declaredPriceZar,
+      termMonths: listing.termMonths,
+      declaredBy: listing.declaredBy,
+      reconciledPriceZar: close.reconciledPriceZar,
+      revised: close.revised,
       engine: {
         name: 'world-model',
         entityId: record.entityId,

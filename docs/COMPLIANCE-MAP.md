@@ -65,7 +65,7 @@ run Nemotron unless a recorded run names the routing id.**
 | It verifies **without the issuer** | `src/avc/verify.ts` — verification takes the certificate's signed bytes and the public key and returns true/false. It never asks the issuer. The key is published at `GET /.well-known/avc-jwks.json`, and the certificate points at it in `proof.verify`. |
 | A tampered certificate fails | The id is **content-derived** (the attested body + the signed payload), so an edited certificate no longer derives its own id; and the body is checked against the signed payload. Both failures are reported, and `bun run avc:selftest` prints the tampered variant failing verification. |
 | The key comes from the environment, and there is no default | `AVC_PRIVATE_KEY` / `AVC_PUBLIC_KEY` in `Bun.env` (`.env.example` documents both). The library throws when the key is missing; the selftest generates a **throwaway in-memory keypair** and says so. No key is committed, logged or written to disk by the code. |
-| What is **not** claimed | There is no live x402 payment rail yet (the payment reference is recorded, the rail itself is not), no UI (P9), and the settlement is a local in-process escrow. |
+| What is **not** claimed | There is no live x402 payment rail yet (the payment reference is recorded, the rail itself is not), and the settlement is a local in-process escrow. The UI is built (P9) — the honest cap moved to the rail, not the surface. |
 
 ### The self-listing protocol (P8)
 
@@ -79,6 +79,20 @@ run Nemotron unless a recorded run names the routing id.**
 | The agent's own price is a claim, and the critic still judges it | `src/listing/self-list.ts` runs the agent's declaration through the **ordinary** pipeline (`runListing`) with `declaredBy: 'agent'`; the agent's own declaration enters the reconciliation as the `owner-declaration` claim. An unsupported price is **held** — `logs/trace-20261022-listing-hold.jsonl` (9 entries) is the evidence. |
 | No secret reaches the trace | The selftest asserts that the listing-token secret and the payment nonce never appear in either trace file. |
 | The gate that proves it | `bun run listing:selftest` — exit 0, the whole path printed, the reuse refused, the hold shown, and the trace-file counts reported. |
+
+### The operator surface (P9)
+
+| Item | Where |
+|---|---|
+| A human can read the exchange without running anything | `src/pages/` — the same `Bun.serve` that answers `POST /run` answers `/`, `/listings`, `/listing/:id`, `/avc/:id`, `/agents`, `/trace` and `/health`. `bun run serve -- --port 3001`. |
+| No framework, no bundler, no build step, no dependency | Plain HTML strings from TypeScript, one inline `<style>` block, one inline `<script>` for copy-to-clipboard. `package.json` has no runtime dependency. Bun runs the TypeScript directly. |
+| Server-rendered, always | No hydration, no SPA, no client-side data fetch. The first paint is the whole page. |
+| **The surface never asserts what it cannot show** | A held listing is shown as **held**, with the critique that held it, the conflicting positions and the escalation. `/avc/<id>` for an id that was never issued returns **404** and a clear "not issued" page — never a fake certificate. |
+| **The numbers are the engine's numbers** | `src/pages/data.ts` reads the committed JSONL traces and the in-process escrow and certificate store, and **recomputes nothing**: no price, no total, no balance, no tally. Where the pipeline recorded nothing, the page shows an em dash. The only counts on the page are counts of records — how many listings were closed, how many were held. |
+| The trace behind every decision | `/listing/:id` shows the lines that closed it, with the detail each step carried; `/trace` shows a whole run, and `?run=<id>` picks one. |
+| A certificate is verified live, on the page | `/avc/:id` calls the same verifier the JSON route uses and prints the result — `Verified` or `Refused` — with the reasons. |
+| Where the money lands | `src/venue.ts` — the HQ receive address `0x3d5975a75f88656B09B3086e82CBcAF8470F517E` is one constant, the payment challenge names it as `payTo`, and every page's footer states it. It is a **receiving address only**: the repository holds no key for it and never signs on its behalf. |
+| The gate that proves it | `bunx tsc --noEmit` exits 0; `bun run serve -- --port 3001` starts, and every route above returns 200 with the fixture data in the body. |
 
 ### Logs
 

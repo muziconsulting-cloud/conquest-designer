@@ -391,6 +391,36 @@ And the evidence is two files: `logs/trace-20261022-listing-accept.jsonl` (8 ent
 `logs/trace-20261022-listing-hold.jsonl` (9 entries) — the same five roles, on the same
 three engines, judging the agent's own price.
 
+### The surface — the operator surface, server-rendered
+
+The same server that answers `POST /run` also answers the pages. **No client framework, no
+bundler, no build step, no npm dependency** — Bun runs the TypeScript directly and returns
+HTML. A page is readable from its HTML alone.
+
+```bash
+bun run serve -- --port 3001
+```
+
+| Route | Shows |
+| --- | --- |
+| `/` | the exchange at a glance: how many listings, how many published, how many held, how many settled, and the invariant that value moves only through settlement |
+| `/listings` | every listing: agent, declared price, the price the evidence supports, decision, status, and the memory ids its evidence cites |
+| `/listing/:id` | one listing in full: the agent, the evidence, the conflict critique, the escalation, and the trace lines that decided it |
+| `/avc/:id` | one certificate: the three facts, the signature, and a **live verify** result |
+| `/agents` | the five agents, what each one decided, and the trace behind it |
+| `/trace` | the JSONL trace, rendered — `?run=<id>` selects one run |
+| `/health` | `{"ok":true}` |
+
+**The surface never asserts what it cannot show.** A held listing is shown as *held*, with
+the critique that held it and the escalation that followed. A certificate id that was never
+issued gets a clear **"not issued"** page and a 404 — never a fake certificate. And every
+number on a page is the pipeline's own number, read back from the trace: the surface does
+not recompute a price, a total or a balance, and it does not keep a tally of its own.
+
+One number is the exception, and it is a count of records, not a restatement of value: how
+many listings were closed, how many were held. Everything else — the price, the term, the
+confidence, the memory ids, the verdict — is the line the agent wrote.
+
 ### The other commands
 
 ```bash

@@ -20,6 +20,12 @@ import { LocalFacilitator } from './listing/payment.ts'
 import type { PaymentChallenge, PaymentResponse } from './listing/payment.ts'
 import { selfList } from './listing/self-list.ts'
 import { RECEIVING_ADDRESS, VENUE_NAME } from './venue.ts'
+import { renderHome } from './pages/index.ts'
+import { renderListing, renderListingMissing, renderListings } from './pages/listings.ts'
+import { renderCertificate } from './pages/avc.ts'
+import { renderAgents } from './pages/agents.ts'
+import { renderTrace } from './pages/trace.ts'
+import { getListing } from './pages/data.ts'
 import type { AgentIdentity } from './types.ts'
 
 /** The listing state of this process. One registry, one token book, one facilitator. */
@@ -34,6 +40,13 @@ const listings = {
 const decodeBase64Url = (value: string): string =>
   Buffer.from(value.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8')
 
+/** A page of HTML. */
+const html = (body: string, status = 200): Response =>
+  new Response(body, {
+    status,
+    headers: { 'Content-Type': 'text/html; charset=utf-8' },
+  })
+
 
 const args = process.argv.slice(2)
 let port = 3000
@@ -47,6 +60,40 @@ const server = Bun.serve({
   port,
   async fetch(request) {
     const url = new URL(request.url)
+
+    // ---- The operator surface — server-rendered HTML ------------------------
+    // Every page is readable from its HTML alone. No hydration, no SPA, no
+    // client-side data fetch for the first paint.
+    if (request.method === 'GET') {
+      if (url.pathname === '/') {
+        return html(renderHome())
+      }
+      if (url.pathname === '/listings') {
+        return html(renderListings())
+      }
+      if (url.pathname.startsWith('/listing/')) {
+        const listingId = decodeURIComponent(url.pathname.slice('/listing/'.length))
+        const listing = getListing(listingId)
+        if (!listing) {
+          return html(
+            renderListingMissing(listingId),
+            404,
+          )
+        }
+        return html(renderListing(listing))
+      }
+      if (url.pathname.startsWith('/avc/')) {
+        const certificateId = decodeURIComponent(url.pathname.slice('/avc/'.length))
+        const rendered = await renderCertificate(certificateId)
+        return html(rendered.html, rendered.status)
+      }
+      if (url.pathname === '/agents') {
+        return html(renderAgents())
+      }
+      if (url.pathname === '/trace') {
+        return html(renderTrace(url.searchParams.get('run')))
+      }
+    }
 
     if (url.pathname === '/health') {
       return Response.json({ ok: true, service: 'conquest-exchange' })
