@@ -1,6 +1,6 @@
 ---
 name: hackathon-compliance
-description: Use ONLY for the Open Agent Hackathon 2026 (hackathon.genai.works / GenAI.Works, submitted via HackOS) to check submission compliance and self-score against the judging rubric. Trigger on "hackathon compliance", "are we compliant", "check the rules", "rubric self-score", "will this score", "what's missing for submission", "hard gates", "mandatory sponsor integration", "declared pre-existing", "deliverables check", or when preparing/auditing the conquest-tinkerer submission repo. Do NOT use for general code review.
+description: Use ONLY for the Open Agent Hackathon 2026 (hackathon.genai.works / GenAI.Works, submitted via HackOS) to check submission compliance and self-score against the judging rubric. Trigger on "hackathon compliance", "are we compliant", "check the rules", "rubric self-score", "will this score", "what's missing for submission", "hard gates", "mandatory sponsor integration", "declared pre-existing", "deliverables check", or when preparing/auditing the conquest-designer submission repo. Do NOT use for general code review.
 license: MIT
 metadata:
   event: Open Agent Hackathon 2026
@@ -43,7 +43,7 @@ diff them against `requirements.json`.**
 
 2. **Run the checker.**
    ```bash
-   python3 ~/.config/opencode/skills/hackathon-compliance/scripts/compliance_check.py --repo /home/wardair/conquest-tinkerer
+   python3 ~/.config/opencode/skills/hackathon-compliance/scripts/compliance_check.py --repo /home/wardair/ConquestDESIGNER
    ```
    Flags: `--json` (machine-readable), `--strict` (exit 1 on a failed hard gate),
    `--now ISO8601` (simulate a clock, e.g. to confirm in-window behaviour).

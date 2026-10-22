@@ -28,7 +28,7 @@ WardByWard (solo)
 
 ## Repository
 
-`https://github.com/muziconsulting-cloud/conquest-tinkerer`
+`https://github.com/muziconsulting-cloud/conquest-designer`
 
 ---
 
@@ -191,4 +191,4 @@ Everything else in the repository was authored **inside** the build window, by C
 
 - Demo video (1–4 min): `<url>`
 - Slide deck: `<url>`
-- Repository: `https://github.com/muziconsulting-cloud/conquest-tinkerer`
+- Repository: `https://github.com/muziconsulting-cloud/conquest-designer`

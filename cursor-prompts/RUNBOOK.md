@@ -29,7 +29,7 @@ not copied in.
 
 ```bash
 export PATH="$HOME/.local/bin:$PATH"
-cd /home/wardair/conquest-tinkerer
+cd /home/wardair/ConquestDESIGNER
 npx degit meterless/meterless/engines/hmem vendor/meterless/hmem
 npx degit meterless/meterless/engines/world-model vendor/meterless/world-model
 npx degit meterless/meterless/engines/markovian vendor/meterless/markovian
