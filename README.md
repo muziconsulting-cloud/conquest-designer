@@ -114,10 +114,10 @@ from the evidence, and the four fixture listings take four different paths throu
 
 ```bash
 $ bun run swarm
-LST-0001  ->  accept   by conflict-critic  (trace: 35 entries)
-LST-0002  ->  hold     by conflict-critic  (trace: 35 entries)
-LST-0003  ->  revise   by conflict-critic  (trace: 35 entries)
-LST-0004  ->  fallback by conflict-critic  (trace: 35 entries)
+LST-0001  ->  accept   by conflict-critic  (trace: 36 entries)
+LST-0002  ->  hold     by conflict-critic  (trace: 36 entries)
+LST-0003  ->  revise   by conflict-critic  (trace: 36 entries)
+LST-0004  ->  fallback by conflict-critic  (trace: 36 entries)
 ```
 
 - **accept** — two independent sources agree with the declared R1440. Published.
@@ -177,7 +177,7 @@ arguing about.
 ```bash
 $ bun run determinism          # two runs, compared entry by entry
 PASS the response is identical between two runs
-PASS the trace length is identical (35 entries)
+PASS the trace length is identical (36 entries)
 PASS every trace entry is identical between two runs
 PASS the swarm is deterministic
 ```
@@ -193,7 +193,16 @@ bun run engines:fetch  # fetch the three Meterless engine specs (AGENTS.md contr
 bun run conformance    # run the three Meterless conformance suites against OUR implementations
 bun run recon          # the listing-side invariant: nothing published without supported evidence
 bun run determinism    # two runs, compared entry by entry (the decisions, the values, the ids)
+bun run zetaris:selftest  # the Zetaris client against the published REST contract, end to end
 ```
+
+`bun run zetaris:selftest` is the sponsor-integration gate: it drives the published
+contract — `GET /api/v1.0/auth/login` (Basic), `POST /api/v1.0/query/sql/start`,
+`GET /api/v1.0/query/sql/page`, `DELETE /api/v1.0/query/sql/close/{queryToken}` — against
+the protocol-compatible local server, and checks the parts that would otherwise be a
+promise in a comment: the published headers are on the wire, the query is closed on the
+error path, an out-of-range `pageLimit` is refused before it goes out, and the pull
+returns the same listing ids, observation ids and content ids as the file loader.
 
 `bun run recon` checks the invariant that exists at this step — no listing is published
 without supported, attributed evidence, the canonical record is content-addressed, and two
@@ -226,7 +235,10 @@ issued.
 - **Runtime:** Bun (TypeScript executed in-process; no build step).
 - **Data:** no external database. The exchange's own state lives in the process and on
   disk; the Zetaris adapter speaks the published REST contract, and the pre-existing
-  product's API is reachable over HTTP when configured.
+  product's API is reachable over HTTP when configured. The listings the swarm reconciles
+  are **pulled over that contract on every run** (`src/zetaris/`): the client, the
+  protocol-compatible local server, the SQL reader and the pull itself are separate
+  files, and the client does not know the local server exists.
 - **Protocol:** x402 (inbound payment receipts), an Ethereum wallet (agentic identity).
 - **Agent engines:** Meterless **H-MEM**, **World Model**, **Markovian** (Apache 2.0) —
   implemented from each engine's `AGENTS.md` contract and gated by Meterless's published
@@ -280,7 +292,7 @@ the specification, and any feature can be re-run from its prompt.
 
 | Step | Feature | Prompt that specified it | Acceptance | Result |
 |---|---|---|---|---|
-| **P0** | the listing swarm, end to end: tracer, orchestrator, the five roles, the LLM registry, `POST /run` | [`cursor-prompts/p0-scaffold-wiring.md`](./cursor-prompts/p0-scaffold-wiring.md) | `bunx tsc --noEmit`; `bun run swarm`; `--input` capture; `POST /run`; two runs decision-identical | **pass** — 4 fixture paths (accept / hold / revise / fallback), 35-entry trace, three captured responses, `tsc` exit 0 |
+| **P0** | the listing swarm, end to end: tracer, orchestrator, the five roles, the LLM registry, `POST /run` | [`cursor-prompts/p0-scaffold-wiring.md`](./cursor-prompts/p0-scaffold-wiring.md) | `bunx tsc --noEmit`; `bun run swarm`; `--input` capture; `POST /run`; two runs decision-identical | **pass** — 4 fixture paths (accept / hold / revise / fallback), 36-entry trace, three captured responses, `tsc` exit 0 |
 | **P1–P3** | the three Meterless engines, written from the sponsors' contracts | [`p1-hmem-engine.md`](./cursor-prompts/p1-hmem-engine.md) · [`p2-world-model-engine.md`](./cursor-prompts/p2-world-model-engine.md) · [`p3-markovian-engine.md`](./cursor-prompts/p3-markovian-engine.md) | `bun run scripts/conformance.ts` — each sponsor's suite against **our** module | **pass** — H-MEM 13/13, World Model 8/8, Markovian 8/8 |
 | **P4–P5** | the roles and the loops, wired to the engines — the seam that makes the engines part of the product rather than a shelf | [`p4-five-agents.md`](./cursor-prompts/p4-five-agents.md) · [`p5-orchestrator-escalation.md`](./cursor-prompts/p5-orchestrator-escalation.md) | `bunx tsc --noEmit`; `bun run swarm`; `bun run determinism`; the four paths unchanged | **pass** — Markovian expands the plan (carryover proven: 3 buckets over 2 chunks), H-MEM stores/recalls/cites and is taught by the critic, the World Model carries the canonical record and the decision; `tsc` exit 0; the swarm still takes accept / hold / revise / fallback |
 
@@ -380,8 +392,10 @@ See **[`SPONSORS.md`](./SPONSORS.md)** for the full write-up. Summary:
 - **Zetaris** — federated data. The hosted cluster was not provisionable (documented
   deviation); the documented federation pattern is reimplemented natively, with an adapter
   that speaks Zetaris's **published REST contract** (`OpenSqlQuery` → `PageSqlQuery` →
-  `CloseSqlQuery`, bearer auth, `X-Org-ID` + `X-Request-ID`). **Declared deviation +
-  native build.**
+  `CloseSqlQuery`, bearer auth, `X-Org-ID` + `X-Request-ID`). **The swarm's candidate
+  listings come out of that protocol, not out of a file**: every run opens a query, pages
+  it and closes it, and the first line of the trace is the pull itself — how many listings
+  came back, over how many requests, in which mode. **Declared deviation + native build.**
 - **NVIDIA** — Nemotron inference, reached **through the Meterless fleet**: the seam asks
   the provider for a routing id, and the provider decides what runs. We hold no NVIDIA
   account, key or billing. **Declared, not yet exercised** — no run on this machine has

@@ -89,14 +89,25 @@ export function toListing(flat: FlatListing): Listing {
   }
 }
 
+/**
+ * The sample listings in their flat shape.
+ *
+ * The flat shape is what the SQL tables are projected from (see
+ * `src/zetaris/tables.ts`), so the pull over the Zetaris protocol and the file
+ * loader carry exactly the same data.
+ */
+export function loadFlatListings(): FlatListing[] {
+  const raw = readJson('fixtures/listing-set.json') as FlatListingSet
+  return raw.listings
+}
+
 /** The four sample listings, in fixture order. */
 export function loadListings(): { listings: Listing[]; expected: Map<string, string> } {
-  const raw = readJson('fixtures/listing-set.json') as FlatListingSet
   const expected = new Map<string, string>()
-  for (const flat of raw.listings) {
+  for (const flat of loadFlatListings()) {
     if (flat.expectedPath) expected.set(flat.listingId, flat.expectedPath)
   }
-  return { listings: raw.listings.map(toListing), expected }
+  return { listings: loadFlatListings().map(toListing), expected }
 }
 
 /** The source registry — which sources exist, and how much they are trusted. */

@@ -13,8 +13,9 @@ import type { AgentRole, ListingStatus } from '../types.ts'
 import type { LlmPort } from '../llm/port.ts'
 import { resolveLlm, checkHealth } from '../engine/registry.ts'
 import { OfflineAdapter } from '../engine/offline.ts'
-import { loadListings, loadSourceRegistry } from '../loading.ts'
+import { loadSourceRegistry } from '../loading.ts'
 import type { RunRequest } from '../loading.ts'
+import { pullCandidates } from '../zetaris/pull.ts'
 import { createEngineSession } from '../engines/session.ts'
 import { runListing } from './loops.ts'
 import type { ListingOutcome } from './loops.ts'
@@ -133,7 +134,34 @@ export async function runExchange(options: RunOptions): Promise<RunResponse> {
   }
 
   const registry = loadSourceRegistry()
-  const { listings } = loadListings()
+
+  const trace = options.trace ?? createTraceSink()
+
+  // The candidate listings come out of the federated layer over the published
+  // Zetaris REST contract. If that pull does not answer, the file loader answers
+  // and the run is marked degraded — it never dies on a dependency.
+  const pull = await pullCandidates()
+  trace.write(
+    'volume-planner',
+    {
+      action: 'query_source',
+      outcome: pull.mode === 'file' ? 'fallback' : 'ok',
+      input_summary: 'Pull the candidate listings and their observations over the Zetaris protocol.',
+      output_summary:
+        `${pull.listings.length} listing(s) pulled over ${pull.requests} request(s) in ${pull.mode} mode. ` +
+        pull.reason,
+      target_agent: null,
+      confidence: null,
+    },
+    {
+      mode: pull.mode,
+      requests: pull.requests,
+      listings: pull.listings.length,
+      protocol: 'zetaris-sql/v1.0',
+    },
+  )
+
+  const listings = pull.listings
 
   const scope = request.context?.listingIds
   const selected =
@@ -141,7 +169,6 @@ export async function runExchange(options: RunOptions): Promise<RunResponse> {
       ? listings.filter((listing) => scope.includes(listing.listingId))
       : listings
 
-  const trace = options.trace ?? createTraceSink()
   const now = () => new Date().toISOString()
 
   // One engine session per run: the memory engine, the canonical log and the
@@ -204,7 +231,7 @@ export async function runExchange(options: RunOptions): Promise<RunResponse> {
             100,
         ) / 100
 
-  const degraded = outcomes.some((outcome) => outcome.fallback)
+  const degraded = outcomes.some((outcome) => outcome.fallback) || pull.mode === 'file'
 
   // The route the model seam took this run — recorded in the trace, not in the
   // response contract.
@@ -220,6 +247,7 @@ export async function runExchange(options: RunOptions): Promise<RunResponse> {
       input_summary: 'Run finished.',
       output_summary:
         `The model route was: ${llmReason} ` +
+        `The federated pull was: ${pull.mode} mode, ${pull.requests} request(s) over the Zetaris protocol. ` +
         `The engines recorded ${memoryCount} memor${memoryCount === 1 ? 'y' : 'ies'}, ` +
         `${eventCount} canonical event(s) and ${auditCount} audit entr${auditCount === 1 ? 'y' : 'ies'}.`,
       target_agent: null,
@@ -229,6 +257,7 @@ export async function runExchange(options: RunOptions): Promise<RunResponse> {
       llm: resolved.source,
       health: health.state,
       reason: llmReason,
+      zetaris: { mode: pull.mode, requests: pull.requests, protocol: 'zetaris-sql/v1.0' },
       engine: {
         hmem: { memories: memoryCount },
         worldModel: { events: eventCount, auditEntries: auditCount },

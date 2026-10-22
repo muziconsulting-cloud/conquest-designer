@@ -49,7 +49,7 @@ Sorted cheapest-big-number first. "Impact dominates" (30, tie-breaker) outranks 
 | 1 | ~~**README** with impact statement + pre-existing declaration + swarm arch~~ | Impact, gates | ~~+8–12~~ | low | **DONE 10-21** |
 | 2 | ~~**SPONSORS.md** — honest deviation + Apache-2.0 attribution~~ | Sponsor (gate) | ~~+2–3~~ | low | **DONE 10-21** |
 | 3 | ~~**Implement H-MEM + World Model + Markovian in our code; go green against the same suites**~~ | Sponsor, Technical | ~~+3–4~~ | med | **DONE 10-22** — 13/13, 8/8, 8/8 on OUR modules (`evidence/conformance-ours.txt`) |
-| 4 | ~~**In-window swarm build** — listings-only roster, real JSONL traces, fallback mode~~ | Technical | ~~+10–14~~ | high | **DONE 10-22** — P0: four paths, 35-entry traces, `POST /run`; P4/P5: the roles now run on the engines |
+| 4 | ~~**In-window swarm build** — listings-only roster, real JSONL traces, fallback mode~~ | Technical | ~~+10–14~~ | high | **DONE 10-22** — P0: four paths, 36-entry traces, `POST /run`; P4/P5: the roles now run on the engines |
 | 5 | **AVC + escrow settle hook** — ownership transfer not cash-out | Technical, Innovation | **+6–9** | med | Oct 22+ |
 | 6 | **Demo video + deck** — run the workflow, don't narrate it | Demo | **+12–14** | med | Oct 22+ |
 | 7 | **Listing surface** — a stranger can list + receive an AVC | Product/UX | **+6–7** | med | Oct 22+ |
@@ -323,7 +323,7 @@ otherwise.
 - **P0 — the swarm.** `src/tracer.ts`, `src/orchestrator/`, `src/agents/` (the five roles),
   `src/engine/` (registry + Meterless HTTP adapter + the deterministic offline renderer),
   `src/loading.ts`, `src/index.ts`, `src/server.ts`, `data/sources.json`, and the three
-  scripts. Four fixture paths, 35-entry traces, `POST /run`, `scripts/verify-paths.ts`
+  scripts. Four fixture paths, 36-entry traces, `POST /run`, `scripts/verify-paths.ts`
   PASS, `scripts/recon.ts` PASS. (`0e87f82`)
 - **P1–P3 — the three engines, written from the sponsors' contracts.** `src/engines/hmem/`,
   `src/engines/world-model/`, `src/engines/markovian/`. `bun run scripts/conformance.ts`
