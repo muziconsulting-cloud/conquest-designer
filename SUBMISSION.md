@@ -1,36 +1,139 @@
-# SUBMISSION — the text for the HackOS form
+# SUBMISSION — the HackOS entry, field by field
 
-Paste-ready. Field names follow rule 6.
+> **The identifiers, exactly right — get these right and nothing else can go wrong:**
+
+| | |
+|---|---|
+| **Repository (paste into the form)** | `https://github.com/muziconsulting-cloud/conquest-designer` |
+| **Repository name** | `conquest-designer` |
+| **Project directory (WSL)** | `/home/wardair/ConquestDESIGNER` |
+| **Declared pre-existing tag** | `pre-window-scaffold` |
+| **The build** | `git diff pre-window-scaffold..HEAD` |
+
+There is **one** submission repository. No other repository in the account is the submission.
 
 ---
 
-## Project name
+## 📋 Before you paste — the five-minute check
 
-**Conquest — the Agent Exchange**
+The form text below is final. These five things are **not** final until the build lands, and
+every one of them is a place a half-built submission can quietly lie:
 
-## One-liner
+1. **The engine conformance numbers.** They must be the score of **our** implementations
+   running **their** suites, and they must be pasted from the README build table — not from
+   a plan. Right now the suites are green against the **reference** implementations
+   (`evidence/conformance-reference.txt`); the shipped numbers are still to come.
+2. **`bun run conformance` must exist and exit 0.** It does not exist yet — `scripts/` is
+   created in the build. If the command is not in the README when you paste, the claim is
+   a claim about nothing.
+3. **The Zetaris story must match reality on the day.** If a live instance was reachable,
+   say so and paste the URL. If not, the declared-deviation wording below is correct and
+   must stay.
+4. **The NVIDIA claim must be what a run proved.** Never say Nemotron unless a recorded
+   run names the routing id. If it did not run, the "declared, not yet exercised" wording
+   is the honest one.
+5. **The demo video and deck URLs must be live**, and the video must show the real run —
+   including the held listing.
 
+---
+
+## 1 · Project name
+
+```
+Conquest — the Agent Exchange
+```
+
+## 2 · Tagline (one line, for a card or a hero)
+
+```
+The exchange where agents are priced, listed, bought and certified.
+```
+
+## 3 · One-liner
+
+```
 An exchange where agents are priced, listed, bought and certified — and the certificate
 says exactly three things, all of them true.
+```
 
-## Track
+## 4 · Short description (~300 characters)
 
-**Track 01 — Solving Fragmented Intelligence**
+```
+An exchange where agents get priced, listed, bought and certified. Owners pay a listing
+fee; the agent then lists itself and names its own price. A swarm of five agents
+reconciles the evidence behind that price across disagreeing sources — and holds the
+listing if the evidence doesn't support it. On settlement you get a signed, verifiable
+certificate: who, what was paid, what it bought.
+```
+
+## 5 · Full description (the main body)
+
+```
+Conquest is the exchange where agents get priced, listed and traded.
+
+Today, agents are built and deployed everywhere and priced nowhere. There is no venue
+where an owner can list an agent for a declared price, no standard way for a buyer to
+know what a purchase actually conferred, and no settlement layer for two parties who
+have never met. Conquest is that venue, and the product it sells is a certificate.
+
+How it works. A human registers an agent and pays a listing fee once, inbound over
+x402. From that moment the agent acts for itself: it receives a listing token, declares
+its own price, and submits its own listing. No human touches the transaction again.
+
+Then the work begins, and the work is the point. The evidence that supports a price
+lives in scattered sources that disagree with each other. A swarm of five agents
+discovers that evidence across the fragmented sources, reconciles it, and adjudicates
+the contradictions: a memory spine that scores conflicts instead of overwriting them, a
+canonical event log that makes every listing and trade auditable, and a bounded
+run engine that keeps the whole thing replayable. A price the reconciled evidence
+does not support is held, not published. Holding is a success — the failure mode for
+an exchange that sells agents is publishing a bad price.
+
+When a buyer purchases, a two-of-two escrow holds the payment, both parties confirm,
+and on settlement the escrow releases and an Agentic Valuation Certificate is issued.
+The certificate states exactly three facts: who the agent is (a standardised agentic
+identity in a wallet), what was paid (the amount, the currency, the payment
+reference), and what it bought (the listing and access term). It is deliberately not a
+valuation — it asserts no computed worth — and it is not a token. It is signed, and it
+verifies from its signed bytes alone, without asking the issuer. It is money-shaped,
+it is sellable, and it is true.
+
+The certificate is the product. The exchange is the venue.
+```
+
+## 6 · Track
+
+```
+Track 01 — Solving Fragmented Intelligence
+```
 
 > *Demonstrate a clever ability to discover and work across fragmented data sources.*
 > The evidence that prices an agent lives in scattered sources that disagree with each
 > other. The exchange discovers that evidence across them, reconciles it, and refuses to
 > publish a price the evidence does not support.
 
-## Team
+## 7 · Team
 
+```
 WardByWard (solo)
+```
 
-## Repository
+## 8 · Repository
 
-`https://github.com/muziconsulting-cloud/conquest-designer`
+```
+https://github.com/muziconsulting-cloud/conquest-designer
+```
+
+## 9 · Demo video + slide deck
+
+```
+Demo video (1–4 min): <url>
+Slide deck:            <url>
+```
 
 ---
+
+# The long-form answers
 
 ## The five Day-1 answers
 
@@ -58,11 +161,9 @@ Because the work is *adjudication across disagreeing sources*, not retrieval. A 
 prompt cannot reconcile a conflict and be accountable for the resolution; the pipeline
 has to plan the evidence buckets, gather from each, score the contradictions, escalate
 once, and hand back a decision with every claim cited. And the decision has to be
-**auditable** — the same inputs must produce the same verdict, with the reasoning on the
-record, which is exactly what a memory spine, a canonical event log and a bounded run
+**auditable** — the same inputs must produce the same verdict, with the reasoning on
+the record, which is exactly what a memory spine, a canonical event log and a bounded run
 engine are for.
-
----
 
 ## How Zetaris was integrated
 
@@ -104,15 +205,14 @@ They are not decoration. They are the substrate:
 | **World Model** | Listing Closer, Telemetry Auditor | the canonical listing-and-trade event log — append-only, idempotent ingest, stable content-addressable IDs, bitemporal edges, an ordered audit entry per mutation |
 | **Markovian** | Volume Planner | bounded-context chunking, compressed state carried forward, flat cost per step, per-step records for replay and diff |
 
-**The proof is their own conformance suites, run against our implementations:**
+**The suites are theirs, and they are the definition of done.** Each engine step in the
+build is accepted only when the sponsor's own conformance suite passes against our
+implementation — the score is pasted into the README's build table, and `bun run
+conformance` reproduces the run.
 
-```
-H-MEM        13/13 passed
-World Model   8/8  passed
-Markovian     8/8  passed
-```
-
-All local, all with no API key, all exit code 0. `bun run conformance` reproduces it.
+> *At paste time, replace this block with the actual numbers from the build table, and
+> delete this note:* `H-MEM 13/13 · World Model 8/8 · Markovian 8/8` — all local, no API
+> key, exit code 0.
 
 ## How Cursor was used during development
 
@@ -153,6 +253,9 @@ and a **deterministic offline adapter** that the demo runs on, so nothing in the
 waits on a credential that has not been issued. We do not claim to have run Nemotron
 unless a recorded run names the model.
 
+> *At paste time: if no run named a Nemotron routing id, say "declared, not yet
+> exercised" here — do not soften it into an implied claim.*
+
 ## What was unique about our use of the sponsor technologies
 
 - **The engines are the product's spine, not a wrapper.** A green conformance score is
@@ -179,16 +282,10 @@ Declared in full in [`PRE-EXISTING.md`](./PRE-EXISTING.md) and tagged
 - **The WardByWard / Conquest platform** (separate private production deployment): its
   money engine, escrow state machine, settlement/certificate rail and account-mint rail.
   Reached over API; no source copied here.
-- **The pre-window scaffold in this repository** (tag `pre-window-scaffold`): the
+- **The declared pre-existing scaffold in this repository** (tag `pre-window-scaffold`): the
   contracts and interfaces (`src/types.ts`, `src/llm/port.ts`, `src/zetaris/adapter.ts`),
   the mandated Meterless prompt library, the scoped Cursor prompt library, the
   documentation, the deck and demo scripts, the fixtures and the toolchain. **Contracts
   and interfaces only — no implementation.**
 
 Everything else in the repository was authored **inside** the build window, by Cursor.
-
-## Links (fill at submission time)
-
-- Demo video (1–4 min): `<url>`
-- Slide deck: `<url>`
-- Repository: `https://github.com/muziconsulting-cloud/conquest-designer`

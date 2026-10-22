@@ -6,12 +6,12 @@ prompt, reviews the diff, runs the gates, and commits. It does not write product
 
 **The one rule that decides whether this entry is honest:** every line of shipped
 implementation is authored **inside** this window, in this repo, by Cursor. Anything
-rehearsed beforehand was rehearsed in a throwaway copy outside the repo and is discarded,
+rehearsed beforehand was rehearsed in a throwaway copy outside the repo and was discarded,
 not copied in.
 
 ---
 
-## 0 · Before the clock starts (pre-window, legal)
+## 0 · Where the build stands
 
 - [x] `cursor-agent` installed and authenticated (`✓ Logged in as muziconsulting@gmail.com`).
 - [x] Organiser **check 2** passed — Cursor created and ran a file with no API key.
@@ -25,7 +25,7 @@ not copied in.
       tier — named models are blocked until the credit lands).
 - [ ] Registration attested on HackOS.
 
-## 1 · Clock start
+## 1 · Start the build
 
 ```bash
 export PATH="$HOME/.local/bin:$PATH"

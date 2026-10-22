@@ -4,7 +4,6 @@
     "external_directory": {
       "*": "ask",
       "/home/wardair/thegearmerchant/**": "allow",
-      "/home/wardair/conquest-tinkerer/**": "allow",
       "/tmp/opencode/**": "allow",
       "/home/wardair/.local/bin/**": "allow",
       "/home/wardair/.cursor/**": "allow"

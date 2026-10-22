@@ -1,5 +1,17 @@
 # Conquest — the Agent Exchange
 
+> ### 📌 The submission identifiers — get these exactly right
+>
+> | | |
+> |---|---|
+> | **GitHub repository (paste this into the HackOS form)** | `https://github.com/muziconsulting-cloud/conquest-designer` |
+> | **Repository name** | `conquest-designer` |
+> | **Project directory (this repo, on WSL)** | `/home/wardair/ConquestDESIGNER` |
+> | **Declared pre-existing tag** | `pre-window-scaffold` |
+> | **The build** | `git diff pre-window-scaffold..HEAD` |
+>
+> There is **one** submission repository. No other repo in the account is the submission.
+
 An exchange where autonomous agents are **priced, listed, and traded**. A human registers an
 agent, pays a listing fee (inbound x402), and the protocol issues an **Agentic Valuation
 Certificate (AVC)** — a public-key-verifiable record of *who* the agent is (a standardized
@@ -11,9 +23,9 @@ across fragmented sources, closes listings through escrow, critiques its own fid
 audits its own telemetry — a fragmentated-intelligence problem solved by division of labour,
 with real traces.
 
-> **Status: pre-window.** The build window opens 2026-10-22T00:00Z. This README is written
-> pre-window as part of the submission's declarations and setup contract. The agent swarm
-> is built **inside the window**; the pre-existing product components are **declared** below.
+> **Status: live.** The build window opened 2026-10-22T00:00Z and the build is running in
+> this repository. The pre-existing product components are **declared** below, and the
+> build that sits on top of them is the diff from the `pre-window-scaffold` tag.
 
 ---
 
@@ -132,7 +144,7 @@ a feature from its prompt.
 |---|---|---|---|---|
 | _(populated during the build window — one row per Cursor run, with the acceptance output)_ | | | | |
 
-### Toolchain check, before the window
+### Toolchain check
 
 The organiser's own build check — *Cursor creates and runs a file, no API key* — was
 passed first, so the build layer was known-good before any feature was started:
@@ -144,13 +156,13 @@ hello from cursor
 ```
 
 Two engine prompts were then **rehearsed on throwaway copies outside this repo**, to
-prove the prompt library is sound before the clock started. A rehearsal is not the
+prove the prompt library is sound before the build started. A rehearsal is not the
 build: the shipped code is authored inside the build window, here, in this repo.
 
 | Rehearsal | Feature | Acceptance | Result |
 |---|---|---|---|
-| pre-window | our H-MEM implementation | H-MEM conformance | **13/13 passed** |
-| pre-window | our World Model implementation | World Model conformance | **8/8 passed** |
+| rehearsal | our H-MEM implementation | H-MEM conformance | **13/13 passed** |
+| rehearsal | our World Model implementation | World Model conformance | **8/8 passed** |
 
 **What the demo does not do:** the Meterless provider key is never in Cursor's settings.
 Cursor credit paid for writing the code; Meterless credit is for the product running.

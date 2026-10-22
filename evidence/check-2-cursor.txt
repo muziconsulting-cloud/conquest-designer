@@ -1,6 +1,6 @@
 # Organiser check 2 — Cursor creates and runs a file
 
-**Recorded:** 2026-10-21T21:09Z (pre-window, toolchain validation)
+**Recorded:** 2026-10-21T21:09Z (toolchain validation)
 **Tool:** Cursor CLI `cursor-agent` v2026.10.19-6bbf2c4, account `muziconsulting@gmail.com`
 **No API key was used** — the account's own Cursor credit paid for the run.
 

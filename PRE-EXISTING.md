@@ -19,29 +19,29 @@ git show pre-window-scaffold --stat           # exactly what was pre-existing
 
 ## 1 · Pre-existing, declared — and what it is
 
-| Path | What it is | Why it is pre-existing |
+| Path | What it is | Status |
 |---|---|---|
-| `.cursor/rules/conquest.mdc` | The project rules Cursor loads on every run. | Written before the window. |
-| `prompts/` | The **mandated Meterless prompt library** (9 files) — the patterns each agent and engine is bound to. | Supplied by the sponsor, copied in before the window. |
-| `cursor-prompts/` | The scoped Cursor prompts (P0–P10) + `RUNBOOK.md` — the build instructions. | Written before the window; the build *executes* them. |
-| `src/types.ts` | The **shared contracts** — types only, no behaviour. | Written before the window. |
-| `src/llm/port.ts` | The **interface** of the one LLM port, plus the provider contract as comments. | Written before the window. |
-| `src/zetaris/adapter.ts` | The **interface** of the Zetaris adapter, plus the published REST contract as comments. | Written before the window. |
-| `src/README.md` | The folder map and the invariants. | Written before the window. |
-| `fixtures/listing-set.json` | The four fixture paths (accept / revise / hold / fallback). | Written before the window. |
-| `README.md`, `SPONSORS.md`, `DECK.md`, `DEMO.md`, `metadata.json`, `BUILD-PROMPTS.md`, `FIRST-PRINCIPLES.md`, `PLAN.md` | The documentation, the deck outline, the demo script, the submission metadata. | Written before the window. |
-| `package.json`, `bun.lock`, `tsconfig.json`, `.gitignore`, `.env.example` | Toolchain. | Written before the window. |
+| `.cursor/rules/conquest.mdc` | The project rules Cursor loads on every run. | Pre-existing (rule 4.2) |
+| `prompts/` | The **mandated Meterless prompt library** (9 files) — the patterns each agent and engine is bound to. | Supplied by the sponsor |
+| `cursor-prompts/` | The scoped Cursor prompts (P0–P10) + `RUNBOOK.md` — the build instructions. | Pre-existing; the build *executes* them |
+| `src/types.ts` | The **shared contracts** — types only, no behaviour. | Pre-existing (rule 4.2) |
+| `src/llm/port.ts` | The **interface** of the one LLM port, plus the provider contract as comments. | Pre-existing (rule 4.2) |
+| `src/zetaris/adapter.ts` | The **interface** of the Zetaris adapter, plus the published REST contract as comments. | Pre-existing (rule 4.2) |
+| `src/README.md` | The folder map and the invariants. | Pre-existing (rule 4.2) |
+| `fixtures/listing-set.json` | The four fixture paths (accept / revise / hold / fallback). | Pre-existing (rule 4.2) |
+| `README.md`, `SPONSORS.md`, `DECK.md`, `DEMO.md`, `metadata.json`, `BUILD-PROMPTS.md`, `FIRST-PRINCIPLES.md`, `PLAN.md` | The documentation, the deck outline, the demo script, the submission metadata. | Pre-existing (rule 4.2) |
+| `package.json`, `bun.lock`, `tsconfig.json`, `.gitignore`, `.env.example` | Toolchain. | Pre-existing (rule 4.2) |
 | `tools/hackathon-compliance/` | The organiser's compliance checker, vendored for self-verification. | Pre-existing tool. |
 
 ### The line we drew, on purpose
 
-**Pre-window = contracts, interfaces, prompts, docs, fixtures, toolchain.**
-**In-window = every implementation.**
+**The declared pre-existing set = contracts, interfaces, prompts, docs, fixtures, toolchain.**
+**Everything after the tag = every implementation.**
 
-Nothing in the pre-window set *does* anything. `src/types.ts` declares shapes;
+Nothing in the declared pre-existing set *does* anything. `src/types.ts` declares shapes;
 `src/llm/port.ts` and `src/zetaris/adapter.ts` declare contracts that the in-window code
 fills in. There is no engine, no agent, no orchestrator, no settlement path, no adapter
-implementation and no surface in the pre-window set. The engines, the five agents, the
+implementation and no surface in the declared pre-existing set. The engines, the five agents, the
 orchestration, the Zetaris adapter, the AVC issuance path, the self-listing protocol,
 the HTML surface and the three LLM adapters are **all** written inside the window.
 

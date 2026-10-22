@@ -1,5 +1,5 @@
 {
-  "note": "Usage records from the two pre-window REHEARSAL runs. A rehearsal proves the scoped prompt is sound; it is not the build. The shipped implementations are authored inside the build window, in this repository, by Cursor.",
+  "note": "Usage records from the two REHEARSAL runs. A rehearsal proves the scoped prompt is sound; it is not the build. The shipped implementations are authored inside the build window, in this repository, by Cursor.",
   "rehearsals": [
     {
       "prompt": "cursor-prompts/p1-hmem-engine.md",

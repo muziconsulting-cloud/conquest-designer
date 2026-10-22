@@ -114,7 +114,7 @@ suite green = done`.
 > OpenAI-compatible API and carries one credential. Our conformance gate depends only on the
 > first.
 
-### We verified the toolchain on our build machine (pre-window, 2026-10-21)
+### We verified the toolchain on our build machine (2026-10-21)
 
 We ran Meterless's own published conformance suites against Meterless's own published
 reference implementations on the machine that will run the submission:

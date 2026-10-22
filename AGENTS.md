@@ -152,7 +152,7 @@ README.md SPONSORS.md metadata.json  the front door
 PRE-EXISTING.md SUBMISSION.md DECK.md DEMO.md  the declarations and deliverables
 ```
 
-## 11 · Current state (2026-10-22, in-window, session 2)
+## 11 · Current state (2026-10-22, live)
 
 - **Cursor is authenticated** (`muziconsulting@gmail.com`) and the organiser's build
   check **passed** (`evidence/check-2-cursor.txt`).

@@ -1,8 +1,9 @@
 # `src/` — folder shape
 
-Scaffold only. The implementation is **build-window work** (see `BUILD-PROMPTS.md`
-§3 — pre-window prep is docs, scaffolds, connector interfaces, sample data and
-prompts; no agents, no orchestrator, no engines, no qualifying logic).
+The declared pre-existing set (rule 4.2) is **contracts and interfaces only** — see
+`BUILD-PROMPTS.md` §3: docs, scaffolds, connector interfaces, sample data and prompts.
+No agents, no orchestrator, no engines, no qualifying logic. The implementation is
+what the build adds on top of this.
 
 ```
 src/

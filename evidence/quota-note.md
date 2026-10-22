@@ -1,6 +1,6 @@
 # Cursor capacity — the honest note
 
-**Recorded:** 2026-10-21T21:35Z · **Status at the time of writing: BLOCKED**
+**Recorded:** 2026-10-21T21:35Z · **Status: BLOCKED**
 
 ## What happened
 
@@ -9,7 +9,7 @@ The Cursor CLI is installed, authenticated and working. The organiser's build ch
 in [`check-2-cursor.txt`](./check-2-cursor.txt).
 
 Two engine prompts were then rehearsed on throwaway copies to prove the scoped-prompt
-pattern before the window opened. Both went green first try:
+pattern before the build started. Both went green first try:
 
 - H-MEM → conformance **13/13**, `tsc --noEmit` exit 0, 3m53s
 - World Model → conformance **8/8**, `tsc --noEmit` exit 0, 5m29s
@@ -35,12 +35,11 @@ CLI and Cursor's own documentation:
 2. **The free allowance is token-based and small.** Cursor does not publish the number,
    and the CLI error does not surface the next reset date. It is exhausted.
 
-## How it was resolved
+## How it is being resolved
 
 **The Cursor sponsor credit, claimed through the hackathon task board** — the
 organiser's own route. The sponsor overview states that team access is provided for the
-hackathon and that the access instructions are published on the sponsor folder before
-the build window opens.
+hackathon and that the access instructions are published on the sponsor folder.
 
 Every paid plan on Cursor carries a pool of the exact models the organiser's check 2
 names — **Composer 2.5 and Grok 4.5** — so the build runs on named Cursor models, which

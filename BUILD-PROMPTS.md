@@ -81,7 +81,7 @@ Suites exit `0` on pass, `1` on failure, `2` if the implementation cannot be loa
   generate and iterate. This is the sponsor's own documented pattern.
 - **Do not paste full implementations into prompts.** A prompt that contains the finished
   code reads as a pre-built solution and weakens the "new work" claim (rules §4.2 / §5.4).
-- The declared pre-window material may be **READ** during the window — port its behavior,
+- The declared pre-existing material may be **READ** during the build — port its behavior,
   never paste it into a prompt, and never commit a transliteration without Cursor's own
   iteration on it.
 - Every engine must pass its **conformance suite** — nothing faked — or sponsor points and
@@ -89,9 +89,10 @@ Suites exit `0` on pass, `1` on failure, `2` if the implementation cannot be loa
 - **Never claim an integration we do not have.** Zetaris is a declared deviation until a
   live instance is reachable; say so plainly rather than shipping a client with no server.
 
-## 3. Pre-window prep (legal now; finished by Oct 21)
+## 3. Preparation (complete — the baseline the build starts from)
 
-Explicitly allowed prep: docs, scaffolds, connector interfaces, sample data, **prompts**.
+Docs, scaffolds, connector interfaces, sample data and the **prompts** — all done. This is the
+baseline the build starts from.
 
 - [x] This prompt sequence (v3, locked).
 - [x] `.cursor/rules/conquest.mdc` v2 — TS globs, Bun rules, aligned contract facts

@@ -1,5 +1,5 @@
 {
-  "$comment": "Sample data. Pre-window legal prep ('sample data'). The listing set the swarm reconciles: sources disagree on purpose, because that fragmentation is the problem the swarm exists to solve. Four listings, four distinct paths through the orchestrator: accept, revise, hold (escalation), and fallback (a source is down).",
+  "$comment": "Sample data — declared pre-existing (rule 4.2). The listing set the swarm reconciles: sources disagree on purpose, because that fragmentation is the problem the swarm exists to solve. Four listings, four distinct paths through the orchestrator: accept, revise, hold (escalation), and fallback (a source is down).",
   "currency": "ZAR",
   "listings": [
     {
