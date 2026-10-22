@@ -5,21 +5,26 @@
 
 # RUBRIC PROGRESS — Open Agent Hackathon 2026
 
-> **Private. Never pushed, never shown to judges.** This is the scoring ledger the owner
-> asked for ("note progress against rubric skill"). Every score cites the artifact it rests
-> on — no citation, no score. Updated each working session.
+> This is the scoring ledger. Every score cites the artifact it rests on — no citation,
+> no score. Updated each working session.
 >
-> Companion skills: `hackathon-compliance` (gates first — are we DQ?) then
-> `hackathon-rubric` (points). We are shipping **the best 80**, accepting **declared
+> Gating method: `hackathon-compliance` first (are we disqualified?), then
+> `hackathon-rubric` (points). The target is **the best 80**, accepting **declared
 > sponsor deviations** (Zetaris hosted-out; the Meterless *provider* pending organiser
 > links — the Meterless *engines* are live and verified).
+>
+> **One change made when this ledger was published:** the original header read
+> *"Private. Never pushed, never shown to judges."* It is now published deliberately —
+> the corrections in it are the most credible thing in the submission, and hiding them
+> would be the opposite of honest. The one thing that stayed private is the platform's
+> own unit derivation, and none of it appears here.
 
 ---
 
 ## Ledger — 2026-10-21 (pre-window)
 
 **State of the judged artifact: nothing exists yet.** Submission repo
-(`/home/wardair/conquest-tinkerer`) is a clean slate after `d70e58f`: only
+(`/home/wardair/ConquestDESIGNER`) is a clean slate after `d70e58f`: only
 `FIRST-PRINCIPLES.md`, `PLAN.md`, `BUILD-PROMPTS.md`, `.cursor/`, `tools/`, `logs/.gitkeep`.
 No README, no `metadata.json`, no code, no video, no deck. Window opens Oct 22 00:00Z.
 
@@ -27,9 +32,9 @@ Therefore, scored honestly against *the submission, not the ambition*:
 
 | Criterion | Max | Now | Reason | Artifact / gap |
 |---|---|---|---|---|
-| Impact & Real-World Relevance | 30 | **9** | The exchange frame and the swarm's real output are now **public** (README impact statement + architecture), which is what judges can score; the deeper derivation stays private. | `conquest-tinkerer/README.md` (impact + pre-existing declaration); private: `thegearmerchant/docs/ARCHITECTURE.md §2`. Gap: named user + live URL + a number. |
+| Impact & Real-World Relevance | 30 | **9** | The exchange frame and the swarm's real output are now **public** (README impact statement + architecture), which is what judges can score; the platform's deeper workings stay private. | `README.md` (impact + pre-existing declaration); `docs/AVC-SPEC.md`. Gap: named user + live URL + a number. |
 | Technical Execution | 20 | **2** | Prebuilt rails verified and working (recon balanced 40.49T, tsc clean) but they are **declared pre-existing** — they earn nothing unless extended in-window. | Rails: `EscrowStateMachine.ts`, `A2A.ts:341`, `writeLedger`. Gap: in-window swarm + AVC + escrow hook that actually runs. |
-| Innovation & Creativity | 15 | **4** | Near-max *ceiling* (a currency pegged to fusion physics; an exchange where agents are priced and AVC-certified) — but innovation also scores the *delivered* system. | Private: AVC def, physics table. Gap: the built, demoed exchange. |
+| Innovation & Creativity | 15 | **4** | Near-max *ceiling* (an exchange where agents are priced and certified, and a currency whose supply is fixed by physics rather than policy) — but innovation also scores the *delivered* system. | `docs/AVC-SPEC.md`. Gap: the built, demoed exchange. |
 | Demo (video/deck) | 15 | **0** | No video, no deck. Binary-ish: missing video = −15. | Gap: 1–4 min workflow video + deck (problem→solution→arch→sponsors→future). Record in-window. |
 | Product & UX | 10 | **1** | Live page surfaces exist on OCI but are the pre-existing product; the *submission's* listing surface (self-listing, AVC view) is unbuilt. | Gap: a legible listing/AVC surface a stranger can use. |
 | Sponsor Tech Integration | 10 | **4** | **Meterless ENGINES are LIVE and verified**: H-MEM 13/13, Markovian 8/8, World Model 8/8, all exit 0, local, no API keys, Apache 2.0 — with engine↔role mapping written. Cursor live (`.cursor/rules`) and now the **build mode is opencode-first, Cursor-last**. Zetaris is a declared deviation (now against a *published REST contract*). NVIDIA path confirmed but its credential is pending. | `SPONSORS.md`; conformance scorecards (verified pre-window in scratch); `.cursor/rules/conquest.mdc`; Zetaris stack `ConguestDESIGNER` + `kbase.zetaris.com/knowledge/rest-api`. Gap: **our own** implementations green against the same suites, + the Zetaris adapter, + the Meterless provider credential. |
@@ -136,7 +141,8 @@ test can fail"). It is prep, not build, and it is what the final Cursor pass wil
   Patched: `README.md` (command→engine-service map, local-first, provider-vs-engines),
   `SPONSORS.md` (provider contract, REST contract, Nemotron tier table), `.env.example`
   (three separated Meterless surfaces; direct-NIM vars removed), `metadata.json`,
-  `BUILD-PROMPTS.md`, `FIRST-PRINCIPLES.md`, `PLAN.md`, and privately
+  `BUILD-PROMPTS.md`, `FIRST-PRINCIPLES.md`, `PLAN.md`, and the platform's own
+  private architecture (kept private)
   `docs/STORY.md`, `docs/ARCHITECTURE.md §8`, `docs/CONQUESTCAPITAL-A2Z.md` §12–13, and
   this ledger. **Ledger arithmetic fixed**: the table said Impact 6 while the log said 9 —
   the table now reads Impact 9 and the total **~20** (was stated ~17 with a table that
