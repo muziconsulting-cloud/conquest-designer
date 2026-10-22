@@ -15,6 +15,7 @@
     "determinism": "bun run scripts/determinism.ts",
     "zetaris:selftest": "bun run scripts/zetaris-selftest.ts",
     "avc:selftest": "bun run scripts/avc-selftest.ts",
+    "listing:selftest": "bun run scripts/listing-selftest.ts",
     "serve": "bun run src/server.ts",
     "swarm": "bun run src/index.ts",
     "typecheck": "bunx tsc --noEmit"

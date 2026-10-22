@@ -10,7 +10,7 @@
  */
 
 import type { AgentRole, ListingStatus } from '../types.ts'
-import type { LlmPort } from '../llm/port.ts'
+import type { LlmHealth, LlmPort } from '../llm/port.ts'
 import { resolveLlm, checkHealth } from '../engine/registry.ts'
 import { OfflineAdapter } from '../engine/offline.ts'
 import { loadSourceRegistry } from '../loading.ts'
@@ -116,22 +116,49 @@ export interface RunOptions {
   llm?: LlmPort
 }
 
-export async function runExchange(options: RunOptions): Promise<RunResponse> {
-  const { request } = options
+/**
+ * The model route for a run — one rail, two callers.
+ *
+ * The orchestrator and the self-listing path both need to know which adapter speaks
+ * for the run, whether the provider answered, and what to say about it in the trace.
+ * That decision lives here, once, so both paths report it the same way.
+ */
+export interface RunLlm {
+  port: LlmPort
+  health: LlmHealth
+  providerConfigured: boolean
+  /** Which rule picked the adapter. Written into the trace. */
+  source: 'sample-mode' | 'provider' | 'runtime' | 'offline'
+  /** The sentence the trace carries. */
+  reason: string
+}
 
+export async function resolveRunLlm(port?: LlmPort): Promise<RunLlm> {
   const resolved = resolveLlm()
-  let port = options.llm ?? resolved.port
+  let selected = port ?? resolved.port
   const providerConfigured = resolved.source === 'provider' || resolved.source === 'runtime'
 
-  const health = await checkHealth(port)
-  let llmReason = resolved.reason
+  const health = await checkHealth(selected)
+  let reason = resolved.reason
 
   // A provider that was configured and then failed must not end the run. The
   // deterministic renderer answers instead, and the degradation is marked.
   if (providerConfigured && health.state !== 'online') {
-    port = new OfflineAdapter()
-    llmReason = `${resolved.reason}, but the provider reported ${health.state} — the deterministic renderer answered instead.`
+    selected = new OfflineAdapter()
+    reason = `${resolved.reason}, but the provider reported ${health.state} — the deterministic renderer answered instead.`
   }
+
+  return { port: selected, health, providerConfigured, source: resolved.source, reason }
+}
+
+export async function runExchange(options: RunOptions): Promise<RunResponse> {
+  const { request } = options
+
+  const llmRun = await resolveRunLlm(options.llm)
+  const port = llmRun.port
+  const providerConfigured = llmRun.providerConfigured
+  const health = llmRun.health
+  const llmReason = llmRun.reason
 
   const registry = loadSourceRegistry()
 
@@ -254,7 +281,7 @@ export async function runExchange(options: RunOptions): Promise<RunResponse> {
       confidence,
     },
     {
-      llm: resolved.source,
+      llm: llmRun.source,
       health: health.state,
       reason: llmReason,
       zetaris: { mode: pull.mode, requests: pull.requests, protocol: 'zetaris-sql/v1.0' },
