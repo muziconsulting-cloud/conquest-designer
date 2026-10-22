@@ -225,8 +225,8 @@ name the deviation. Do not imply a live instance you did not reach.
 > price, the listing is held rather than published. Holding is a feature.
 >
 > Five agents, two loops, one bounded escalation, one JSONL trace line per step.
-> Built in Cursor, one scoped prompt per feature; every prompt is in the repository, so
-> any feature can be re-run from it.
+> Built spec-first, one scoped prompt per feature, each with its acceptance gate; every
+> prompt is in the repository, so any feature can be re-run from it.
 >
 > Zetaris: our client speaks the published REST contract (OpenSqlQuery → PageSqlQuery →
 > CloseSqlQuery, query token released on every path). No shared instance was granted, so

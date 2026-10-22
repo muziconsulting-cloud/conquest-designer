@@ -214,8 +214,9 @@ waits on a credential that has not been issued.
 > runs it against a **local server that speaks the same protocol** — no shared instance was
 > granted. The stub is server-side; **the identical command runs against a live instance**.
 >
-> **Cursor — live.** Every feature was written in Cursor, one scoped prompt at a time.
-> The prompt library is in the repo: **any feature can be re-run from its prompt.**
+> **Cursor — declared deviation.** Cursor's allowance was exhausted for the window and
+> the sponsor credit was never provisioned, so the build layer was **opencode** — spec-first,
+> against a scoped prompt library that makes every feature replayable in Cursor.
 >
 > **NVIDIA — reached through the Meterless fleet.** Nemotron is selected by routing id at
 > runtime. We hold no NVIDIA account, key or billing.
@@ -235,20 +236,25 @@ close, query token carried, released on the error path too.
 
 **On-slide copy**
 
-> Every feature written **in Cursor**, from a scoped prompt, against a rules file loaded on
-> every run.
+> Every feature **specified first**, from a scoped prompt, against a rules file that
+> governs every step.
 >
-> - The diff was reviewed, the acceptance command was run, the commit carries the **Cursor session id**
+> - The acceptance command travels with the prompt, and it is run before the commit
 > - All **twelve** build prompts are in the repository
 > - The rules file: Bun and TypeScript, no build step, bounded loops, no invented APIs,
 >   no weakened assertions, secrets from the environment only
 >
-> **The build is reproducible from the prompts. That is the proof, not a claim.**
+> **The build layer was opencode, not Cursor — Cursor's allowance was exhausted for the
+> window, and the sponsor credit was never provisioned. We say so rather than imply a
+> build tool we did not use.**
 
 **Visual:** a single terminal screenshot of a prompt file, or a build-evidence table.
-**Speaker notes:** This slide answers the rubric's "built in Cursor" line with evidence
-rather than assertion: the prompts are in the repo, the usage records are committed, and
-any feature can be re-run. Have the build-evidence table open in a tab for questions.
+**Speaker notes:** This slide answers the rubric's build-tool line with evidence rather
+than assertion: the prompts are in the repo, the acceptance output is committed, and any
+feature can be re-run. **Say the deviation out loud** — Cursor's allowance was exhausted
+for the window and the sponsor credit was never provisioned. A judge who hears it from
+us and then finds it in the repo trusts everything else we said. Have the build-evidence
+table open in a tab for questions.
 
 ---
 

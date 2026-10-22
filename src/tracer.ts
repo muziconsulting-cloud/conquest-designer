@@ -82,14 +82,6 @@ export class Tracer {
     this.ready = mkdir(dirname(logPath), { recursive: true }).then(() => undefined)
   }
 
-  async append(record: AuditRecord, enrichment: TraceEnrichment): Promise<TraceLine> {
-    await this.ready
-    const line = enrichRecord(record, enrichment)
-    await Bun.write(this.logPath, `${JSON.stringify(line)}\n`, { createPath: true })
-    // Bun.write truncates — append via file handle instead
-    return line
-  }
-
   async writeLine(record: AuditRecord, enrichment: TraceEnrichment): Promise<TraceLine> {
     await this.ready
     const line = enrichRecord(record, enrichment)

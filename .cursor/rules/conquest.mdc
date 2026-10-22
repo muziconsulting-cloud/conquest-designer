@@ -55,9 +55,11 @@ alwaysApply: true
 
 ## How to work in this repo
 
-- **This repo is built in Cursor, on Cursor's own models (Composer / Grok).**
-  Each task is one scoped feature: a prompt file under `cursor-prompts/`, one
-  feature, one acceptance command. Do not widen the task.
+- **This repo is built spec-first, from the scoped prompt library.**
+  Each task is one scoped feature: a prompt file under `cursor-prompts/`, one feature,
+  one acceptance command. Do not widen the task. The prompt is the specification and
+  its acceptance command is the definition of done — implement against it, run the gate,
+  never weaken the gate.
 - **Read from files, never ask for context to be pasted.** The contracts are in
   `src/types.ts`. The engine specs are in `vendor/meterless/<engine>/AGENTS.md`.
   The mandated Meterless prompt for the task is attached with `@filename` from

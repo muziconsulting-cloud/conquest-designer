@@ -1,0 +1,8 @@
+{
+  "request_id": "example-003",
+  "user_query": "Which listings degraded to fallback because a federated source was unavailable?",
+  "context": {
+    "track": "Solving Fragmented Intelligence",
+    "path": "fallback"
+  }
+}

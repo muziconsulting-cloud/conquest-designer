@@ -5,9 +5,17 @@
 prompt, reviews the diff, runs the gates, and commits. It does not write product code.
 
 **The one rule that decides whether this entry is honest:** every line of shipped
-implementation is authored **inside** this window, in this repo, by Cursor. Anything
-rehearsed beforehand was rehearsed in a throwaway copy outside the repo and was discarded,
-not copied in.
+implementation is authored **inside** this window, in this repo. Anything rehearsed
+beforehand was rehearsed in a throwaway copy outside the repo and was discarded, not
+copied in.
+
+**The build tool, stated honestly:** these prompts were written for Cursor, and Cursor
+remains the target — but Cursor's allowance was exhausted for the whole window (account
+monthly limit spent, API-key weekly limit reached inside the window, sponsor credit never
+provisioned), so the implementation was written in **opencode** against these same
+prompts. Each prompt carries its acceptance gate, so the build is replayable in Cursor
+the moment credit exists. **If credit appears, replay every prompt in order** — that is
+what closes the deviation.
 
 ---
 

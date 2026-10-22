@@ -1,0 +1,8 @@
+{
+  "request_id": "example-001",
+  "user_query": "Which listings have a declared price the evidence does not support?",
+  "context": {
+    "track": "Solving Fragmented Intelligence",
+    "path": "hold"
+  }
+}

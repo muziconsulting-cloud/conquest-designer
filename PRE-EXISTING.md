@@ -6,7 +6,7 @@ except for clearly declared pre-existing components."*
 
 This file is that declaration, in full. Everything below was committed **before
 2026-10-22T00:00Z** and is tagged **`pre-window-scaffold`**. Everything committed
-*after* that tag is the build — authored inside the window, by Cursor.
+*after* that tag is the build — authored inside the window.
 
 Verify it yourself:
 

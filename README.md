@@ -149,40 +149,52 @@ issued.
   requests). The model is selected by routing id discovered from the provider at runtime,
   not hard-coded, with a local Meterless Runtime and a deterministic offline adapter as
   fallbacks.
-- **Dev env:** **Cursor** (Composer / Grok on Cursor credit) writes the code — rules in
-  `.cursor/rules/conquest.mdc`, the mandated Meterless prompt files handed over with
-  `@filename`. opencode is the reviewer that runs the gates and steers the next prompt.
+- **Dev env:** the build ran in **opencode** against the **scoped prompt library** in
+  `cursor-prompts/` — the house rules in `.cursor/rules/conquest.mdc` govern every step
+  and the mandated Meterless prompt files are bound by `@filename`. **Cursor's allowance
+  was exhausted for the window** (monthly on the account, weekly on the API key, sponsor
+  credit not provisioned) — a declared deviation, stated in full under "How we built it".
 
 ---
 
 ## How we built it
 
-**The build layer of this submission was built in Cursor**, on Cursor's included models
-(Composer and Grok), paid from Cursor credit. The mandated **Meterless prompt library**
-was the input to that build: each feature was started by handing Cursor the matching
-prompt file from [`prompts/`](./prompts/) with `@filename`, then saying what to build.
-The project rules in [`.cursor/rules/conquest.mdc`](./.cursor/rules/conquest.mdc) are
-loaded automatically by Cursor and were in place for every run.
+**The build layer was opencode, not Cursor.** Cursor's allowance was exhausted for
+the whole window: the account's monthly limit was spent, and the API key's weekly limit
+was reached inside the window and does not reset until after the submission deadline.
+The sponsor credit had not been provisioned to us. This is a **declared deviation** and
+it is stated here, in the sponsor write-up and in the submission form rather than
+hidden.
 
-**The method** — one scoped feature per Cursor run, so a run is small, reviewable and
-cheap on credit:
+**What the build still has is a spec-first prompt library.** Every feature has a scoped
+prompt in [`cursor-prompts/`](./cursor-prompts/) with its acceptance gate, and the
+implementation follows its prompt exactly; the house rules in
+[`.cursor/rules/conquest.mdc`](./.cursor/rules/conquest.mdc) govern every step; the
+mandated Meterless prompt library is in [`prompts/`](./prompts/). **If the sponsor credit
+is provisioned, the identical prompts can be replayed in Cursor, step by step, with the
+gate in each prompt** — the build was written to be replayable, not to be depended upon.
 
-1. **Describe** — a scoped prompt per feature. Context is loaded from files, never
+**The method** — spec-first, one scoped feature per step, so each step is small,
+reviewable and gated:
+
+1. **Specify** — a scoped prompt per feature. Context is loaded from files, never
    pasted: the mandated pattern via `@filename`, the contracts from `src/types.ts`, the
-   house rules from the rules file.
-2. **Review** — the diff is read and the acceptance command is run. Where the output was
-   not understood, it was read back rather than assumed.
-3. **Steer** — the next prompt carries the error message, not a guess. A commit follows
-   every working step, so a bad generation is rolled back rather than debugged.
+   house rules from the rules file. The prompt carries the feature **and its acceptance
+   gate**, so the gate travels with the specification.
+2. **Implement** — the step is built against its prompt, and the prompt's acceptance
+   command is the definition of done. Where the output was not understood, it was read
+   back rather than assumed.
+3. **Gate and commit** — the acceptance command is run, and the commit follows every
+   working step, so a bad step is rolled back rather than debugged in place.
 
 **The prompts themselves are in the repo** — [`cursor-prompts/`](./cursor-prompts/) holds
 one scoped prompt per feature, and [`prompts/`](./prompts/) holds the mandated Meterless
-prompt files they bind to. That is the reproducible form of the build: anyone can re-run
-a feature from its prompt.
+prompt files they bind to. That is the reproducible form of the build: the prompts are
+the specification, and any feature can be re-run from its prompt.
 
-| Run | Feature | Prompt handed to Cursor | Acceptance | Result |
+| Step | Feature | Prompt that specified it | Acceptance | Result |
 |---|---|---|---|---|
-| _(populated during the build window — one row per Cursor run, with the acceptance output)_ | | | | |
+| _(populated during the build window — one row per step, with the acceptance output)_ | | | | |
 
 ### Toolchain check
 

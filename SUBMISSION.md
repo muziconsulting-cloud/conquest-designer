@@ -214,26 +214,35 @@ conformance` reproduces the run.
 > delete this note:* `H-MEM 13/13 · World Model 8/8 · Markovian 8/8` — all local, no API
 > key, exit code 0.
 
-## How Cursor was used during development
+## How the build was done — and the one deviation in it
 
-Cursor was the build layer for the whole submission, on Cursor's included models
-(Composer / Grok), on Cursor credit. The method was one scoped feature per run:
+**The build layer was opencode, not Cursor, and that is a declared deviation.**
+Cursor's allowance was exhausted for the whole window: the account's monthly limit was
+spent, the API key's weekly limit was reached inside the window and does not reset
+until after the deadline, and the sponsor credit had not been provisioned to us. We
+would rather state that plainly than imply a build tool we did not use.
 
-1. **Describe** — a scoped prompt per feature, in `cursor-prompts/`. Context is loaded
+**The method was spec-first, one scoped feature per step:**
+
+1. **Specify** — a scoped prompt per feature, in `cursor-prompts/`. Context is loaded
    from **files**, never pasted: the mandated Meterless pattern via `@filename`, the
-   contracts from `src/types.ts`, the house rules from `.cursor/rules/conquest.mdc`
-   (which Cursor loads automatically on every run).
-2. **Review** — the diff is read and the acceptance command is run — the engine
-   conformance suite for an engine, the fixture output for the orchestrator, the
-   certificate verification for the AVC. Where output was not understood it was read
-   back, not assumed.
-3. **Steer** — the next prompt carries the failure output, not a guess. A commit follows
-   every working step, so a bad generation is rolled back rather than debugged.
+   contracts from `src/types.ts`, the house rules from `.cursor/rules/conquest.mdc`.
+   Each prompt carries its own acceptance gate, so the gate travels with the spec.
+2. **Build and gate** — the step is implemented against its prompt and the acceptance
+   command is run: the engine conformance suite for an engine, the fixture output for
+   the orchestrator, the certificate verification for the AVC. Where output was not
+   understood it was read back, not assumed.
+3. **Commit** — a commit follows every working step, so a bad step is rolled back
+   rather than debugged in place.
 
-**The full prompt library is in the repository** (`cursor-prompts/`, eleven scoped
+**The full prompt library is in the repository** (`cursor-prompts/`, twelve scoped
 prompts, each with its acceptance command), so **any feature can be re-run from its
-prompt**. The README's "How we built it" table carries one row per run with the
-acceptance output.
+prompt** — in Cursor, if the sponsor credit is provisioned, or in any other tool, since
+the prompts are the specification rather than a transcript of one session. The README's
+"How we built it" table carries one row per step with the acceptance output.
+
+**Cursor remains in the stack** as the rules file that governs every step
+(`.cursor/rules/conquest.mdc`) and as the target of that replayable prompt library.
 
 ## Where NVIDIA technology contributes
 
@@ -288,4 +297,4 @@ Declared in full in [`PRE-EXISTING.md`](./PRE-EXISTING.md) and tagged
   documentation, the deck and demo scripts, the fixtures and the toolchain. **Contracts
   and interfaces only — no implementation.**
 
-Everything else in the repository was authored **inside** the build window, by Cursor.
+Everything else in the repository was authored **inside** the build window.

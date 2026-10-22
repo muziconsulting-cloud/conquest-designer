@@ -16,7 +16,13 @@ pre-submission checklist, and where in this repository it is satisfied. Where we
 | 2 | A `Dockerfile` (marked *Recommended*, not required, and **not** on the checklist) | **None** | There is no Docker on the build machine, so it could not be built or tested. An untested Dockerfile is worse than none: a judge who tries `docker build` on a file nobody ever ran gets a broken submission. The guide's checklist does not require it. |
 | 3 | Zetaris over a live instance | **The published REST contract**, against a **local protocol-compatible server** | No instance was reachable: the local install needs Docker (unavailable) and the managed AWS stack stalled at account-binding and billing. The client is real — `OpenSqlQuery` → `PageSqlQuery` → `CloseSqlQuery`, Bearer auth, `X-Org-ID`, `X-Request-ID`, the `queryToken` carried through the page step, and the query **closed on the error path too**. The stub is on the *server* side, never in the client, and the **same command** runs against a live instance by changing one environment variable. |
 
-**A fourth thing that is not a deviation but must be read honestly:** the Meterless
+**A fourth deviation, in the same spirit as the third:** the build layer was opencode
+rather than Cursor, because Cursor's allowance was exhausted for the whole window and
+the sponsor credit was never provisioned to us. The build was spec-first against the
+scoped prompt library, so it is replayable in Cursor — but it was not written there,
+and we do not say it was.
+
+**A fifth thing that is not a deviation but must be read honestly:** the Meterless
 **engines are live and verified** against their own conformance suites. The Meterless
 *hosted provider* credential and the **NVIDIA routing id** have not been issued to us.
 The LLM seam therefore ships **three** adapters — the hosted provider, a local runtime,
@@ -42,7 +48,7 @@ run Nemotron unless a recorded run names the routing id.**
 |---|---|
 | Zetaris integrated, with a real role in the build | `src/zetaris/` — the listing-and-trade event log. The client is the published contract; the demo runs it against the local protocol-compatible server (deviation 3 above). |
 | Meterless integrated, with a real role in the build | `src/engines/` — **H-MEM** (evidence reconciler, conflict critic), **World Model** (the canonical event log, the telemetry auditor), **Markovian** (the volume planner). Green against their own suites. |
-| Project developed in Cursor | The build layer was Cursor, one scoped prompt per feature, all eleven prompt files in `cursor-prompts/` — so any feature can be re-run from its prompt. `.cursor/rules/conquest.mdc` was loaded on every run. |
+| Project developed in Cursor | **DECLARED DEVIATION — the build layer was opencode, not Cursor.** Cursor's allowance was exhausted for the whole window (account monthly limit spent; API-key weekly limit reached inside the window, resetting after the deadline; sponsor credit never provisioned). The build was spec-first against the twelve scoped prompts in `cursor-prompts/`, each carrying its acceptance gate, with `.cursor/rules/conquest.mdc` governing every step — so the identical prompts can be replayed in Cursor if the credit is provisioned. Stated here, in `SPONSORS.md` and in the submission form. |
 | NVIDIA used wherever it contributes | Reached through the Meterless fleet's model routing. Declared, not yet exercised, until a run names the routing id. |
 
 ### Agents

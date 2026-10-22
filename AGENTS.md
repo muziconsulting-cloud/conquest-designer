@@ -19,20 +19,27 @@ generic assumptions about frameworks, build steps, or tooling. Read it first.
 
 ## 1 · The build mode — this is the rule that decides the whole session
 
-**Cursor authors every qualifying line of code. opencode is the reviewer and steerer.**
+**opencode authors the implementation, against a spec-first prompt library. Cursor was
+unavailable and that is declared, not hidden.**
 
-The organiser's Module 3 is *"you must build in Cursor."* That governs the **build
-layer**; the product stack is free (any language, framework, model, cloud). So:
+The organiser's Module 3 is *"you must build in Cursor."* We could not: the account's
+monthly limit was spent, the API key's **weekly** limit was reached inside the window
+and does not reset until after the deadline, and the sponsor credit was never
+provisioned to us. The build therefore ran here, against the same scoped prompts, with
+the same house rules and the same per-step acceptance gates.
 
-1. One scoped prompt per run: `cursor-agent -p "$(cat cursor-prompts/p<N>-<name>.md)" --model auto --force --trust --output-format json > logs/p<N>.json 2> logs/p<N>.err`
-2. Read the diff. Run the step's acceptance gate. Fix by **steering** (a follow-up prompt
-   through the same session), not by hand-writing the implementation.
-3. Commit. Move to the next step.
+**The rule that matters now: the prompts are the specification.** Every step in
+`cursor-prompts/` carries the feature **and** its acceptance gate, so:
 
-**Exception (the only one):** the review, the steering, the acceptance gate, the git
-history and the documentation are opencode's work. A prompt file, a rule file, a doc or a
-commit message is not "the implementation" — writing those by hand is correct and
-expected.
+1. Implement the step against its prompt.
+2. Run the step's acceptance gate from the prompt. Fix the implementation, never the gate.
+3. Commit the step, with the prompt file named in the message.
+
+**If the sponsor credit is provisioned before the deadline, the prompts get replayed in
+Cursor** — `cursor-agent -p "$(cat cursor-prompts/p<N>-<name>.md)" --model auto --force
+--trust --output-format json > logs/p<N>.json 2> logs/p<N>.err` — and the repo becomes a
+genuine Cursor-built project. The build is written to be replayable; nothing in it
+depends on the tool that wrote it.
 
 The full execution plan — order, gates, credit cut-order, honesty rules — is
 [`cursor-prompts/RUNBOOK.md`](./cursor-prompts/RUNBOOK.md). **Read it before firing P0.**
@@ -57,8 +64,9 @@ Full spec: [`docs/AVC-SPEC.md`](./docs/AVC-SPEC.md).
 - `src/zetaris/adapter.ts` — the Zetaris adapter. One adapter; no parallel client.
 - `prompts/` — the mandated Meterless prompt library, bound by `@filename`. Use these
   prompts; do not paraphrase the prompt library into your own text.
-- `cursor-prompts/p0…p11` — the **12** scoped build prompts. **The build is reproducible
-  from them** — that is the proof the work was done in Cursor.
+- `cursor-prompts/p0…p11` — the **12** scoped build prompts. **They are the
+  specification**: each one carries the feature and its acceptance gate, so the build is
+  reproducible from them — in Cursor, or in any tool.
 - `POST /run` — the **programmatic entry point**, specified in `p0` and implemented in
   `src/server.ts`. A judge must be able to run the system without clicking anything.
   The request/response contract is fixed: `request_id`, `user_query`, `context` in;
@@ -69,9 +77,10 @@ Full spec: [`docs/AVC-SPEC.md`](./docs/AVC-SPEC.md).
   set on every handoff. A judge reads this file to see the collaboration.
 - `p11` is **not optional**: three real output examples, the anti-hardcode audit, the
   documentation audit, and the clean-clone proof. Never cut it.
-- `.cursor/rules/conquest.mdc` — auto-loaded by Cursor on every run. It is the
-  authoritative code-quality contract (no new deps, no invented APIs, bound every loop,
-  whole-rand only, secrets from `Bun.env` only, never weaken an assertion).
+- `.cursor/rules/conquest.mdc` — the authoritative code-quality contract (no new deps,
+  no invented APIs, bound every loop, whole-rand only, secrets from `Bun.env` only,
+  never weaken an assertion). It governs every step of this build, whichever tool
+  writes it, and it is what a Cursor replay would load automatically.
 
 ## 4 · The three engines (Meterless) and their roles
 

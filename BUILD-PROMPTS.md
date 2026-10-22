@@ -19,11 +19,16 @@ are the version of record for the **Oct 22 00:00Z → Oct 27 23:45Z** window.
   tree** (history preserved). It is a design reference only; the judged artifact is TS.
   The official onboarding material uses Python for its starter, but states plainly that
   **"JavaScript or TypeScript works just as well"** — so TS is **sanctioned, not a deviation**.
-- **BUILD MODE — where the work happens (CORRECTED 2026-10-21, organiser Module 3):**
-  **the build happens in Cursor.** The event's Build layer is explicit: *"you must build in
-  Cursor"*, the code-writing AI runs on **Cursor's included models (Composer / Grok) paid
-  from Cursor credit**, and the submission must explain how Cursor was used. So every
-  qualifying line of code is authored by **Cursor**, not by us.
+- **BUILD MODE — where the work happens (REVISED 2026-10-22, organiser Module 3):**
+  the event's Build layer is explicit: *"you must build in Cursor"*, and the submission
+  must explain how Cursor was used. **We could not.** The account's monthly Cursor
+  allowance was spent, the API key's **weekly** allowance was reached inside the window
+  and does not reset until after the deadline, and the sponsor credit was never
+  provisioned to us. The build therefore ran in **opencode**, against the **scoped prompt
+  library** in `cursor-prompts/` — each prompt carries the feature **and** its
+  acceptance gate, so the build is replayable in Cursor the moment credit exists.
+  This is a **declared deviation**, and it is stated in the README, `SPONSORS.md`, the
+  compliance map and the submission form.
   - **How we drive it:** the **Cursor CLI** (`cursor-agent`) on this machine, headless,
     one scoped feature per invocation. Same models, same credit, same
     `.cursor/rules/conquest.mdc` auto-loaded — just scriptable, which is what makes it
@@ -169,10 +174,10 @@ That is the mechanism we use, and it is why the build mode is **Cursor-first**:
 
 - The `prompts/` files are the **judge-visible artifact** — they show the mandated library
   being used, bound to our objectives, with hard stop rules.
-- The **implementation is written by Cursor**, against the `AGENTS.md` contracts and the
-  conformance suites, with the matching `prompts/*.md` handed over via `@filename` in the
-  same run. That is the sanctioned loop: hand the Agent the pattern file, then say what
-  you want built.
+- The **implementation is written against the `AGENTS.md` contracts and the conformance
+  suites**, with the matching `prompts/*.md` bound by `@filename` in the same step. That
+  is the sanctioned loop: the pattern file travels with the step that uses it.
+  (The build tool was opencode, not Cursor — see the build-mode note above.)
 - The library is **not Cursor-only** — Meterless publishes it for Cursor, Claude Code,
   Copilot, Gemini and Claude Code alike — but the event's Build layer names **Cursor**
   specifically, so Cursor is where the code gets written.
@@ -226,8 +231,9 @@ That is the mechanism we use, and it is why the build mode is **Cursor-first**:
 - Work the **§9 rubric loop**, lowest-scoring criterion first (points per effort).
 - Produce the deliverables (P11): README Setup/Usage/Dependencies, sponsor write-up,
   slide deck, 1–4 min demo video.
-- **P12 — the one Cursor session**, over the finished skeleton, running the `prompts/`
-  files with `@filename` (plus the organiser's Cursor check).
+- **P12 — the replay session**, over the finished skeleton, running the `prompts/` files
+  with `@filename` — in Cursor if the sponsor credit has been provisioned by then, in
+  which case the build-layer deviation closes itself.
 - Re-run the in-repo compliance monitor + conformance daily.
 - **Oct 27 (AM SAST):** final compliance run, flip the repo public, confirm the
   HackOS form (pre-existing list mirrors `metadata.json`), submit **well before
