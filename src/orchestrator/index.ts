@@ -11,8 +11,7 @@
 
 import type { AgentRole, ListingStatus } from '../types.ts'
 import type { LlmHealth, LlmPort } from '../llm/port.ts'
-import { resolveLlm, checkHealth } from '../engine/registry.ts'
-import { OfflineAdapter } from '../engine/offline.ts'
+import { resolveLlm, checkHealth, OfflineAdapter } from '../llm/index.ts'
 import { loadSourceRegistry } from '../loading.ts'
 import type { RunRequest } from '../loading.ts'
 import { pullCandidates } from '../zetaris/pull.ts'

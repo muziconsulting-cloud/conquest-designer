@@ -216,8 +216,8 @@ DECK.md DEMO.md            GENERATED POST-BUILD from the running app (p11)
   twelve scoped prompts in `cursor-prompts/`, each carrying its acceptance gate, with
   `.cursor/rules/conquest.mdc` governing every step. Replayable in Cursor if credit lands.
 - **P0 is done and green.** The listing swarm runs end to end: `src/tracer.ts`,
-  `src/orchestrator/`, `src/agents/` (the five roles, with real logic), `src/engine/`
-  (registry + Meterless HTTP adapter + the deterministic offline renderer),
+  `src/orchestrator/`, `src/agents/` (the five roles, with real logic), `src/llm/`
+  (the one port, the three adapters, the Meterless wire contract),
   `src/loading.ts`, `src/index.ts`, `src/server.ts`, `data/sources.json`, and the three
   scripts. Gates run and passing: `bunx tsc --noEmit`; `bun run swarm` (4 lines, the 4
   fixture paths); `--input` capture → `output_examples/`; `POST /run` → the full

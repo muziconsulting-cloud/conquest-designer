@@ -421,6 +421,69 @@ One number is the exception, and it is a count of records, not a restatement of 
 many listings were closed, how many were held. Everything else — the price, the term, the
 confidence, the memory ids, the verdict — is the line the agent wrote.
 
+### The model seam — one port, three adapters
+
+Every agent that needs a model talks to **one port** (`src/llm/port.ts`). No module
+outside `src/llm/` makes a model call, and no model-provider SDK appears anywhere in the
+codebase — `fetch` is the whole client. Three adapters sit behind the port:
+
+| Adapter | What it is | How it is chosen |
+| --- | --- | --- |
+| `MeterlessProviderAdapter` | the **hosted** Meterless provider — an OpenAI-format `POST <host>/v1/chat/completions` | `METERLESS_BASE_URL` + `METERLESS_API_KEY` are set |
+| `MeterlessRuntimeAdapter` | the **local** Meterless Runtime — the same wire format, on this machine | `METERLESS_RUNTIME_TOKEN` is set |
+| `OfflineAdapter` | the **deterministic** renderer — no key, no credit, no network | `SAMPLE_MODE=true`, or no credentials at all |
+
+The contract is implemented in `src/llm/health.ts` and runs on every request:
+
+- the base URL is normalised to `<host>/v1` — a pasted `/v1`, `/v1/chat/completions`,
+  `/v1/models` or `/healthz` all land in the same place, and it is **never** `/v1/v1`;
+- `Authorization: Bearer <token>` on every call, from the environment only — never a URL,
+  never a log, never a file;
+- `meterless-app: <a stable lowercase id>` on every request, and `meterless-scope: user`
+  on chat;
+- **model ids are routing modes, not model names.** The adapter reads the ids the
+  provider actually exposes from `GET /v1/models`, keeps any `meterless/*` id it does not
+  recognise, and when the mode a caller asked for is not on offer it falls back to one
+  that is — and **says so in the result**, never silently;
+- **health is not liveness.** `GET /v1/models` decides `online` / `offline` /
+  `unauthorized` (a 401 or a 403 is `unauthorized` — a different problem, and only one of
+  them is fixed by pasting a token). `GET /healthz` only proves the process is up;
+- the local adapter **finds** the runtime: it probes 8088, 8090, 8787 and 11434 on
+  127.0.0.1, localhost and [::1], and keeps the first hit that is online or unauthorized;
+- a plain-text answer stays a plain string — prose is never forced into JSON;
+- the timeout is **180 seconds**, because a cold model load can take minutes, and a
+  timeout is an `offline` result that degrades the run, never an error that kills it.
+
+**To point the hosted adapter at a real provider endpoint**, set exactly these — nothing
+else, and no key ever enters the repository:
+
+```bash
+METERLESS_BASE_URL=https://<the provider host>       # a bare host, or one ending in /v1
+METERLESS_API_KEY=<the bearer token>
+NEMOTRON_MODEL=meterless/deep                        # a PREFERENCE, not a requirement
+```
+
+and for the local runtime:
+
+```bash
+METERLESS_RUNTIME_TOKEN=<the token in <stateDir>/proxy-token>
+METERLESS_RUNTIME_BASE_URL=http://127.0.0.1:8088/v1 # optional — unset means "find it"
+```
+
+`bun run llm:selftest` proves the whole contract **on the wire**: it boots a server that
+speaks the Meterless wire format, points the real adapters at it, and checks the parts
+that would otherwise be a promise in a comment — the bearer token and both `meterless-*`
+headers really went out, a wrong token reads `unauthorized` and not `offline`, an
+unrecognised `meterless/*` id is kept, a routing mode that is not on offer is replaced
+**and reported**, a plain-text answer stays a string, and the offline adapter answers with
+no key set and **no network at all** (proved by replacing `fetch` with a function that
+throws for the duration of that check).
+
+**What the recorded runs used:** the offline deterministic renderer, because no provider
+credential has been issued to us. The hosted path is real code against a published
+contract — it has not been exercised against a live Meterless endpoint, and this README
+does not claim it has.
+
 ### The other commands
 
 ```bash
@@ -432,6 +495,7 @@ bun run determinism    # two runs, compared entry by entry (the decisions, the v
 bun run zetaris:selftest  # the Zetaris client against the published REST contract, end to end
 bun run avc:selftest       # escrow -> settlement -> certificate, verified from its own bytes
 bun run listing:selftest   # register -> 402 -> pay -> redeem -> the agent lists itself
+bun run llm:selftest       # the LLM port: three adapters, the Meterless contract on the wire
 ```
 
 `bun run zetaris:selftest` is the sponsor-integration gate: it drives the published
@@ -459,6 +523,7 @@ hackathon starter uses, and it is how the engine-usage line of the rubric gets r
 | `bun run recon` | the listing-side invariant — nothing published without supported, attributed evidence | the **World Model** audit trail is what it reads |
 | `bun run avc:selftest` | escrow lock → claim → settle → certificate issue → independent verification | the **World Model** canonical record the settlement is written onto |
 | `bun run listing:selftest` | register → 402 → pay → redeem → the agent lists itself at its own price → the critic judges it | the same **H-MEM** / **World Model** / **Markovian** run the listing path already uses — the agent cannot skip the critic |
+| `bun run llm:selftest` | the one LLM port against a server that speaks the Meterless wire format — the hosted provider, the local runtime and the offline renderer | the **Meterless provider contract** itself: `<host>/v1`, bearer auth, `meterless-app`, `meterless-scope: user`, routing ids discovered from `GET /v1/models`, 180 s timeout |
 
 The swarm writes one JSONL trace per run under `logs/`, so every listing decision is
 reproducible and auditable.
@@ -644,7 +709,8 @@ See **[`SPONSORS.md`](./SPONSORS.md)** for the full write-up. Summary:
   account, key or billing. **Declared, not yet exercised** — no run on this machine has
   named a routing id, because no provider credential has been issued to us. The offline
   deterministic renderer and the local-runtime path are real, and they are what the
-  recorded runs used.
+  recorded runs used. The **provider seam itself is built and proved on the wire** — see
+  the model-seam section above and `bun run llm:selftest`.
 
 ---
 

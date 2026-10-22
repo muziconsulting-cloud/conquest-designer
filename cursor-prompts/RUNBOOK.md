@@ -85,8 +85,8 @@ table is committed.
 | 11 | `p10-llm-seam.md` | three adapters, one port, no key in the tree | Sponsor / in-kind |
 | 12 | `p11-examples-and-audit.md` | 3 real outputs, hardcode audit clean, clean clone runs | **Submission integrity** |
 
-**Where the build stands (2026-10-22, session 4): steps 1–9 are done and green**
-(P0, P1–P3, P4/P5, P6, P7, P8). **P9 is next**, then P10, then P11 — which is never cut.
+**Where the build stands (2026-10-22, session 6): steps 1–11 are done and green**
+(P0, P1–P3, P4/P5, P6, P7, P8, P9, P10). **P11 is next** — and it is never cut.
 
 **P11 is not optional and it is not a polish step.** It produces the three real output
 examples, the anti-hardcode audit, the documentation audit and the clean-clone proof.

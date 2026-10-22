@@ -45,11 +45,29 @@ export interface LlmRequest {
   signal?: AbortSignal
 }
 
+/**
+ * What happened to the routing mode the caller asked for.
+ *
+ * A model id is a *routing mode*, not a model name, and the provider decides what
+ * it offers. When the mode a caller asked for is not on offer, the adapter falls
+ * back to one that is — and says so here. It never swaps silently.
+ */
+export interface LlmRoutingNote {
+  /** The routing mode the caller asked for. */
+  requested: string
+  /** The routing mode that actually served the request. */
+  used: string
+  /** Why it changed. */
+  reason: string
+}
+
 export interface LlmResponse {
   /** Plain text. A plain text request stays a string, exactly like OpenAI. */
   text: string
   /** The model or routing mode that actually served this. */
   model: string
+  /** Set when the requested routing mode was not offered and another one was used. */
+  routing?: LlmRoutingNote
   raw?: unknown
 }
 
@@ -61,10 +79,26 @@ export interface LlmHealth {
   baseUrl?: string
 }
 
+/**
+ * Liveness is not health.
+ *
+ * `GET <host>/healthz` only proves the process is up — it says nothing about
+ * whether the provider will serve a model, and it never needs a token. Health is
+ * decided by `GET <host>/v1/models`, where a 401 or 403 means `unauthorized`:
+ * a different thing, and only one of them is fixable by pasting a key.
+ */
+export interface LlmLiveness {
+  up: boolean
+  detail?: string
+  baseUrl?: string
+}
+
 export interface LlmPort {
   /** Stable id used as the `meterless-app` header value. */
   readonly appId: string
   readonly name: string
+  /** The resolved base URL, once the adapter knows it. */
+  readonly baseUrl?: string
   complete(request: LlmRequest): Promise<LlmResponse>
   /**
    * A wrong token must report `unauthorized`, never `offline` — they mean
@@ -77,6 +111,8 @@ export interface LlmPort {
    * configuration rather than a code change.
    */
   models(): Promise<string[]>
+  /** The process is up. Never throws. Optional: an adapter with no endpoint has none. */
+  liveness?(): Promise<LlmLiveness>
 }
 
 /** The provider-neutral settings the registry reads. */
@@ -87,7 +123,10 @@ export interface LlmConfig {
   apiKey?: string
   /** Hosted provider: a PREFERRED model id. Discovered ids win over it. */
   model?: string
-  /** Local runtime: `http://127.0.0.1:8088/v1` by default. */
+  /**
+   * Local runtime: an explicit base URL. **Unset means "find it"** — the runtime
+   * is discovered on the known local ports rather than assumed to be on one.
+   */
   runtimeBaseUrl?: string
   /** Local runtime: the real bearer token. `rt-local` is rejected upstream. */
   runtimeToken?: string

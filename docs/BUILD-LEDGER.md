@@ -521,3 +521,86 @@ Bun runs the TypeScript directly and returns the page.
    exists.
 4. **The live URL** — a public address for the surface, which is what the Impact row wants
    and what a judge will click. Hosting is the only thing between us and that row.
+
+---
+
+## Ledger — 2026-10-22 (live, session 6): the one LLM port, three adapters, and the contract on the wire
+
+**P10 is built and green.** The model seam is one port with three adapters behind it, in
+one folder, and the Meterless provider contract is proved **on the wire** rather than
+asserted in a comment.
+
+| Criterion | Max | Now | Reason | Artifact |
+|---|---|---|---|---|
+| Technical Execution | 20 | **16** | Up one: the seam has **one** implementation now, and the duplicate P0 stubs and the second copy under `src/engine/` are gone. The provider contract is executable and checked — bearer auth, both `meterless-*` headers, `<host>/v1` normalisation, routing discovery, a reported routing swap, `unauthorized` versus `offline`. The honest cap is unchanged: no provider credential, no live x402 rail. | `src/llm/`, `scripts/llm-selftest.ts` |
+| Innovation & Creativity | 15 | **9** | Unchanged. | `src/listing/self-list.ts` |
+| Product & UX | 10 | **8** | Unchanged — the surface is there; the demo video and the live URL are still missing. | `src/pages/` |
+| Impact & Real-World Relevance | 30 | **11** | Unchanged. | `README.md` |
+| Sponsor Tech Integration | 10 | **8** | Up one: the **provider** side of the Meterless integration is now real code against the published contract, and the selftest proves it without a credential. The engines' conformance scores and the Zetaris client were already green. The hosted endpoint itself is still not exercised — no credential has been issued. | `src/llm/`, `evidence/conformance-ours.txt` |
+| Demo (video/deck) | 15 | **0** | Unchanged — still no `demo/demo.mp4`, no `DECK.pdf`. | `docs/DEMO-draft.md`, `docs/DECK-draft.md` |
+| **Total** | **100** | **~52** | Up from ~50. The remaining points are the artifacts, the hosted credential, the live URL and the impact evidence. | |
+
+### What was built
+
+- **One port, three adapters, in one folder.** `src/llm/port.ts` (the interface, unchanged
+  in shape), `src/llm/health.ts` (the wire both HTTP adapters run on), `src/llm/provider-adapter.ts`
+  (the hosted Meterless provider), `src/llm/local-adapter.ts` (the local Meterless
+  Runtime, with port discovery), `src/llm/offline-adapter.ts` (the deterministic
+  renderer), `src/llm/index.ts` (the picker: `SAMPLE_MODE` → offline, provider env →
+  provider, runtime token → local, otherwise offline).
+- **The duplicate implementations are gone.** The P0 stubs (`src/llm/provider.ts`,
+  `src/llm/runtime.ts`) and the working copies that lived under `src/engine/`
+  (`meterless.ts`, `offline.ts`, `registry.ts`) were deleted, and the orchestrator now
+  imports the port's own index. One seam, one folder, one name for each adapter.
+- **The contract, in code that runs:** `<host>/v1` normalisation that accepts a pasted
+  `/v1`, `/v1/chat/completions`, `/v1/models` or `/healthz` and is never `/v1/v1`; bearer
+  auth from `Bun.env` only; `meterless-app` on every request and `meterless-scope: user`
+  on chat; routing ids discovered from `GET /v1/models`, with unrecognised `meterless/*`
+  ids kept; a routing mode that is not on offer is replaced **and reported** in
+  `LlmResponse.routing`; `GET /v1/models` decides `online`/`offline`/`unauthorized` while
+  `GET /healthz` only proves the process is up; the local adapter probes 8088, 8090, 8787
+  and 11434 on 127.0.0.1, localhost and [::1] and keeps the first online-or-unauthorized
+  hit; prose stays a plain string; 180 s timeout, and a timeout is an `offline` result
+  that degrades the run instead of an error that kills it.
+- **`src/llm/local-server.ts` — a server that speaks the Meterless wire format.** It is
+  strict on purpose: a request that arrives without `meterless-app` (or without
+  `meterless-scope: user` on chat) is refused, so a passing test proves the headers
+  really went out.
+- **`scripts/llm-selftest.ts` — the acceptance command.** It prints, for each of the
+  three adapters, the name, the resolved base URL, the routing mode actually used, the
+  health state and the first 80 characters of the response. It proves the wrong token
+  reads `unauthorized` and not `offline`, that the `rt-local` placeholder is refused,
+  that the offline path answers with **no key set and no network** — proved by replacing
+  `globalThis.fetch` with a function that throws for the duration of that check.
+
+### What was corrected
+
+- **`src/llm/provider.ts` and `src/llm/runtime.ts` were P0 stubs** that said "the real
+  wiring lands in P10", and a *second*, working implementation of the same contract was
+  living under `src/engine/`. Two names for one seam is how a port stops being a port.
+  Both are gone; `src/llm/` is now the only place a model call can be made.
+
+### The honest cap
+
+The provider credential has still not been issued, so **no run on this machine has named
+a routing id** and the recorded runs still use the deterministic offline renderer. What
+P10 buys is that the hosted path is *real code against a published contract* rather than
+a promise in a comment — and that the moment a credential arrives, the same seam serves
+it with no code change. **We do not claim to have run Nemotron.**
+
+### The next four moves, in order
+
+1. **P11** — the submission-integrity step: three real output examples, the anti-hardcode
+   audit, the documentation audit, the clean-clone proof, and the **real** `DECK.md` and
+   `DEMO.md`. It is never cut.
+2. **The two artifacts** — `DECK.pdf` and `demo/demo.mp4` — worth **15 points** and
+   currently worth nothing. They are the cheapest points left in the rubric, and the demo
+   has to show the **held listing**, not just the happy path. The surface to record now
+   exists.
+3. **The live URL** — a public address for the surface, which is what the Impact row wants
+   and what a judge will click. Hosting is the only thing between us and that row.
+4. **The provider credential** — when it arrives, the hosted path is already built: set
+   `METERLESS_BASE_URL`, `METERLESS_API_KEY` and `NEMOTRON_MODEL`, run once, and the
+   trace names a routing id. Until then, nothing waits on it.
+
+

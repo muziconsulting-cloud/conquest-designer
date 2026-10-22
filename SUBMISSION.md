@@ -110,10 +110,11 @@ read as a claim it has not earned:
 |---|---|
 | the listing swarm (five roles, one seam, JSONL traces) | a **live** Zetaris instance — no instance was reachable |
 | our own H-MEM / World Model / Markovian, green on the sponsors' suites (13/13, 8/8, 8/8) | a live x402 payment rail and a real payment — the facilitator is a **local stub** |
-| the Zetaris client over the published REST contract (against a local protocol-compatible server) | the hosted LLM path with a real credential — the runs use the deterministic offline adapter |
-| the 2-of-2 escrow, and the AVC issued **only** on `settled`, verifiable from its signed bytes | a **live** public URL for the surface — the server is built and runs |
-| the self-listing protocol: a real 402, a single-use listing token, and the agent declaring its own price through the same critic | |
+| the Zetaris client over the published REST contract (against a local protocol-compatible server) | the hosted LLM path with a **real credential** — the seam is built and proved on the wire; the recorded runs use the deterministic offline adapter |
+| the 2-of-2 escrow, and the AVC issued **only** on `settled`, verifiable from its signed bytes | a **live** Meterless provider endpoint — the seam is built and proved on the wire, but no credential has been issued |
+| the self-listing protocol: a real 402, a single-use listing token, and the agent declaring its own price through the same critic | a **live** public URL for the surface — the server is built and runs |
 | the operator surface: server-rendered HTML, no framework, no build step — the listings, one listing in full with its critique and its trace, the agents, the trace, and the certificate with a live verify | |
+| the model seam: one port, three adapters, the Meterless wire contract proved on the wire (`bun run llm:selftest`) | |
 
 ## 6 · Track
 
