@@ -178,31 +178,41 @@ DECK.md DEMO.md            GENERATED POST-BUILD from the running app (p11)
 
 ## 11 · Current state (2026-10-22, live)
 
-- **Cursor is authenticated** (`muziconsulting@gmail.com`) and the organiser's build
-  check **passed** (`evidence/check-2-cursor.txt`).
-- **The Cursor free-tier quota is exhausted** and the account is on the **Free** plan, so
-  named models are refused. The **sponsor credit is not yet live** — the organiser's
-  Cursor access instructions are still marked TBC. **The build is blocked on Cursor
-  capacity** — see `evidence/quota-note.md` for the options (sponsor credit on HackOS /
-  Cursor Plus $8mo / the free-tier monthly reset).
+- **The build layer is opencode, not Cursor** — a declared deviation, stated everywhere
+  it matters. Cursor's allowance was exhausted for the whole window (account monthly
+  limit spent; API-key weekly limit reached inside the window, resetting after the
+  deadline; sponsor credit never provisioned). The build is **spec-first** against the
+  twelve scoped prompts in `cursor-prompts/`, each carrying its acceptance gate, with
+  `.cursor/rules/conquest.mdc` governing every step. Replayable in Cursor if credit lands.
+- **P0 is done and green.** The listing swarm runs end to end: `src/tracer.ts`,
+  `src/orchestrator/`, `src/agents/` (the five roles, with real logic), `src/engine/`
+  (registry + Meterless HTTP adapter + the deterministic offline renderer),
+  `src/loading.ts`, `src/index.ts`, `src/server.ts`, `data/sources.json`, and the three
+  scripts. Gates run and passing: `bunx tsc --noEmit`; `bun run swarm` (4 lines, the 4
+  fixture paths); `--input` capture → `output_examples/`; `POST /run` → the full
+  contract; `scripts/verify-paths.ts` PASS; `scripts/recon.ts` PASS; two runs
+  **decision-identical** (only `timestamp` and `trace_id` move).
+- **The rule that makes it work:** the owner's declaration is the claim, never the
+  evidence. Only independent sources resolve a field, so a claim can be contradicted —
+  which is the only reason the hold exists.
+- **Cursor's aborted P0 stubs were removed** (`src/pipeline.ts`, `src/agents/types.ts`,
+  `src/llm/offline.ts`) — `src/agents/types.ts` read the answer straight out of the
+  fixture's `expectedPath` field, which is the exact hardcoded answer the P11 audit
+  hunts.
 - **Two rehearsals ran on throwaway copies outside the repo** (P1 → 13/13, P2 → 8/8, both
-  `tsc` clean) — proof the prompts work, and the source of the P3 rewrite.
-- **No implementation exists in `src/` yet** — everything there is contracts and
-  interfaces. `git diff pre-window-scaffold..HEAD` is the honest build: so far, evidence,
-  docs and rules.
+  `tsc` clean) — proof the prompts work, and the source of the P3 rewrite. Pre-window,
+  discarded, **not in the repository**; disclosed in `PRE-EXISTING.md` and the README.
+- **`bun run conformance` reports PENDING** for each engine until our implementation
+  exists. It never borrows the sponsors' reference score.
 
-**Next move:** as soon as Cursor capacity exists, fire P0 → P1 → P2 → P3 (the three
-engines to 13/13, 8/8, 8/8) → P4 → P5 → P6 → P7 → P8 → P9 → P10 → **P11**, one step at a
-time, with the RUNBOOK's gates. P11 is the submission-integrity step: three real output
-examples, the anti-hardcode audit, the documentation audit and the clean-clone proof.
-
-**If capacity does not arrive:** the fallback order is in the RUNBOOK, and the **honest
-ledger** gets updated either way. But check one thing first — the organiser's guide says
-the Cursor credit is activated *"using the instructions in the Space XAI and Cursor
-folder in Resources on HackOS"*. That folder is where the credit lands, and it is
-cheaper than a paid plan.
+**Next move:** P1 → P2 → P3 (the three Meterless engines, to 13/13, 8/8, 8/8 on **our**
+code) → P4/P5 (the roles and the loops, already largely built — wire them to the
+engines) → P6 → P7 → P8 (the money path: inbound x402, escrow, the AVC) → P9 → P10 →
+**P11**, one step at a time, with the RUNBOOK's gates. P11 is the submission-integrity
+step: three real output examples, the anti-hardcode audit, the documentation audit and
+the clean-clone proof — and the regeneration of the real `DECK.md` and `DEMO.md`.
 
 **The organiser's own final checklist, answered line by line:**
-[`docs/COMPLIANCE-MAP.md`](./docs/COMPLIANCE-MAP.md) — including the three declared
+[`docs/COMPLIANCE-MAP.md`](./docs/COMPLIANCE-MAP.md) — including the four declared
 deviations (Bun instead of Python, no Dockerfile, the Zetaris local protocol-compatible
-server) and the reason for each.
+server, and the build layer) and the reason for each.

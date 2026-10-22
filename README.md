@@ -107,14 +107,63 @@ The `curl` is the **programmatic entry point** — no UI, no clicking. It return
 `log_path` points at a JSONL trace that exists when the response is sent. **Read it** —
 it is the evidence that the agents collaborated rather than ran in sequence.
 
+### What runs today
+
+The listing swarm is built and running. It is not a mock: the decisions are computed
+from the evidence, and the four fixture listings take four different paths through it.
+
+```bash
+$ bun run swarm
+LST-0001  ->  accept   by conflict-critic  (trace: 35 entries)
+LST-0002  ->  hold     by conflict-critic  (trace: 35 entries)
+LST-0003  ->  revise   by conflict-critic  (trace: 35 entries)
+LST-0004  ->  fallback by conflict-critic  (trace: 35 entries)
+```
+
+- **accept** — two independent sources agree with the declared R1440. Published.
+- **hold** — the reconciled evidence supports **R2880**, not the declared R1440. The
+  listing is **held, not published**, and it escalates exactly once.
+- **revise** — the price agrees but the term does not. The critic challenges it, the
+  reconciler answers with the stronger evidence, and the listing is published at
+  **R1440 for 6 months**.
+- **fallback** — one federated source did not answer. The run degrades, publishes on the
+  evidence that did answer, and says so in the trace and in the copy.
+
+The rule underneath all four: **the owner's declaration is the claim, never the evidence.**
+Only independent sources resolve a field, so a claim can be contradicted — which is the
+only reason the hold exists.
+
+```bash
+$ bun run scripts/verify-paths.ts     # the four paths, checked against the fixture key
+ok   LST-0001  expected accept  got accept  (published, confidence 0.95)
+ok   LST-0002  expected hold    got hold    (held, confidence 0.6)
+ok   LST-0003  expected revise  got revise  (published, confidence 0.83)
+ok   LST-0004  expected fallback got fallback (published, confidence 0.9)
+PASS all four paths taken as described
+
+$ bun run scripts/recon.ts             # the listing-side invariant
+PASS no listing is published without supported, attributed evidence
+```
+
+**What is not built yet:** the three Meterless engines (P1–P3), the escrow settlement and
+certificate issue (P7–P8), and the UI. `bun run conformance` says **PENDING** for each
+engine until its implementation exists — it never borrows the sponsors' reference score
+and reports it as ours.
+
 ### The other commands
 
 ```bash
 bun run swarm          # start the listing swarm (Volume Planner → Rec. → Closer ⇄ Critic → Auditor)
 bun run engines:fetch  # fetch the three Meterless engine specs (AGENTS.md contract + suites)
 bun run conformance    # run the three Meterless conformance suites against OUR implementations
-bun run recon          # verify the money invariant is balanced (delta 0)
+bun run recon          # the listing-side invariant: nothing published without supported evidence
 ```
+
+`bun run recon` checks the invariant that exists at this step — no listing is published
+without supported, attributed evidence, the canonical record is content-addressed, and two
+runs of the same fixtures are decision-identical. The **money invariant** (the 40.492T
+TIME equilibrium) belongs to the settlement work and is **not** claimed here; the script
+says so on its first lines.
 
 **Every command maps to the engine service behind it.** This is the shape Meterless's own
 hackathon starter uses, and it is how the engine-usage line of the rubric gets read:
@@ -122,7 +171,7 @@ hackathon starter uses, and it is how the engine-usage line of the rubric gets r
 | Command | What runs behind it | Meterless engine |
 |---|---|---|
 | `bun run swarm` | evidence reconciliation → canonical listing/trade event log → bounded long-run cadence | **H-MEM** · **World Model** · **Markovian** |
-| `bun run conformance` | the three published conformance suites (`bun vendor/meterless/<engine>/conformance/runner.ts`) | H-MEM 13/13 · Markovian 8/8 · World Model 8/8 |
+| `bun run conformance` | the three published conformance suites (`bun vendor/meterless/<engine>/conformance/runner.ts`) | H-MEM 13/13 · Markovian 8/8 · World Model 8/8 — **the sponsors' reference scores**, recorded in [`evidence/conformance-reference.txt`](./evidence/conformance-reference.txt). Our own scores land in `evidence/conformance-ours.txt` when P1–P3 are done. |
 | `bun run recon` | the pre-existing product's `writeLedger` rail and supply invariant | — (pre-existing product API) |
 
 The swarm writes one JSONL trace per run under `logs/`, so every listing decision is
@@ -194,7 +243,7 @@ the specification, and any feature can be re-run from its prompt.
 
 | Step | Feature | Prompt that specified it | Acceptance | Result |
 |---|---|---|---|---|
-| _(populated during the build window — one row per step, with the acceptance output)_ | | | | |
+| **P0** | the listing swarm, end to end: tracer, orchestrator, the five roles, the LLM registry, `POST /run` | [`cursor-prompts/p0-scaffold-wiring.md`](./cursor-prompts/p0-scaffold-wiring.md) | `bunx tsc --noEmit`; `bun run swarm`; `--input` capture; `POST /run`; two runs decision-identical | **pass** — 4 fixture paths (accept / hold / revise / fallback), 35-entry trace, three captured responses, `tsc` exit 0 |
 
 ### Toolchain check
 
@@ -213,8 +262,16 @@ build: the shipped code is authored inside the build window, here, in this repo.
 
 | Rehearsal | Feature | Acceptance | Result |
 |---|---|---|---|
-| rehearsal | our H-MEM implementation | H-MEM conformance | **13/13 passed** |
-| rehearsal | our World Model implementation | World Model conformance | **8/8 passed** |
+| rehearsal | H-MEM engine, on a throwaway copy | H-MEM conformance | **13/13 passed** |
+| rehearsal | World Model engine, on a throwaway copy | World Model conformance | **8/8 passed** |
+
+**Read that table precisely.** These rehearsals ran **before** the window, on copies
+**outside this repository**, and the code was **discarded** — none of it is in this
+submission. They prove the scoped-prompt pattern and the engine contracts are sound; they
+are **not** a result for the shipped code. The engines in `src/engines/` are written
+inside the window (P1–P3) and their scores land in `evidence/conformance-ours.txt`. The
+rehearsals are disclosed here, and in [`PRE-EXISTING.md`](./PRE-EXISTING.md), because a
+judge should never have to guess which code is which.
 
 **What the demo does not do:** the Meterless provider key is never in Cursor's settings.
 Cursor credit paid for writing the code; Meterless credit is for the product running.
@@ -267,21 +324,29 @@ Five roles, two loops, one escalation, one bounded fallback.
 
 See **[`SPONSORS.md`](./SPONSORS.md)** for the full write-up. Summary:
 
-- **Cursor** — development environment; rules in `.cursor/rules/conquest.mdc`, and the final
-  pass over the finished skeleton. **Live.**
+- **Cursor** — the build environment the organiser's track asks for. **Declared
+  deviation:** Cursor's allowance was exhausted for the window (monthly limit spent, the
+  API key's weekly limit reached inside the window, sponsor credit never provisioned), so
+  the implementation was written in **opencode**, spec-first, against the scoped prompts
+  in `cursor-prompts/` — with `.cursor/rules/conquest.mdc` governing every step. The
+  prompt library is replayable in Cursor the moment credit exists.
 - **Meterless** — agent engines. We use **H-MEM** (evidence reconciliation), **World Model**
   (canonical listing/trade event log) and **Markovian** (bounded-context long runs). All three
   are Apache 2.0, run locally with no API keys, and are **gated by Meterless's own
-  conformance suites** (verified 13/13, 8/8, 8/8 on our build machine). **Live.**
+  conformance suites**. The sponsors' reference implementations score 13/13, 8/8, 8/8 on
+  this machine; **our** implementations are P1–P3 and `bun run conformance` reports
+  **PENDING** for each until its implementation exists.
 - **Zetaris** — federated data. The hosted cluster was not provisionable (documented
   deviation); the documented federation pattern is reimplemented natively, with an adapter
   that speaks Zetaris's **published REST contract** (`OpenSqlQuery` → `PageSqlQuery` →
   `CloseSqlQuery`, bearer auth, `X-Org-ID` + `X-Request-ID`). **Declared deviation +
   native build.**
-- **NVIDIA** — Nemotron inference, reached **through the Meterless fleet**. Super serves
-  the reasoning agents, Nano the high-volume helpers, Ultra the escalation path. We hold no
-  NVIDIA account, key or billing; the tier is selected by routing id at runtime. The
-  offline and local-runtime fallbacks are real, not stubs.
+- **NVIDIA** — Nemotron inference, reached **through the Meterless fleet**: the seam asks
+  the provider for a routing id, and the provider decides what runs. We hold no NVIDIA
+  account, key or billing. **Declared, not yet exercised** — no run on this machine has
+  named a routing id, because no provider credential has been issued to us. The offline
+  deterministic renderer and the local-runtime path are real, and they are what the
+  recorded runs used.
 
 ---
 
@@ -295,9 +360,9 @@ is vendored or redistributed; any code adapted from those sources retains its li
 
 ## Where each check is answered
 
-The organiser's own pre-submission checklist, answered line by line — and the **three
+The organiser's own pre-submission checklist, answered line by line — and the **four
 declared deviations** (Bun instead of Python, no Dockerfile, the Zetaris local
-protocol-compatible server) with the reason for each:
+protocol-compatible server, and the build layer) with the reason for each:
 
 **[`docs/COMPLIANCE-MAP.md`](./docs/COMPLIANCE-MAP.md)**
 

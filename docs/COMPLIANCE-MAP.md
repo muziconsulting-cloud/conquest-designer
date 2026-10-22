@@ -8,12 +8,13 @@ pre-submission checklist, and where in this repository it is satisfied. Where we
 > page disagree, the Official Rules apply."* The Official Rules permit any language,
 > framework, model or cloud. The deviations below are all in that space.
 
-## The three declared deviations
+## The four declared deviations
 
 | # | The guide's suggestion | What we did | Why |
 |---|---|---|---|
 | 1 | Python 3.11 + FastAPI + `run.py` + `requirements.txt` | **Bun + TypeScript**, no build step, `src/index.ts` + `src/server.ts`, `package.json` scripts | The Official Rules allow any language/framework. Bun runs the TypeScript directly — no build, no bundler, no install step to go wrong for a judge. `bun run swarm` and `bun run serve` are the entry points, and they are documented in the README. |
 | 2 | A `Dockerfile` (marked *Recommended*, not required, and **not** on the checklist) | **None** | There is no Docker on the build machine, so it could not be built or tested. An untested Dockerfile is worse than none: a judge who tries `docker build` on a file nobody ever ran gets a broken submission. The guide's checklist does not require it. |
+| 4 | Build the project in Cursor | **The build layer was opencode** — a declared deviation, stated in the first line of the sponsor write-up and in the submission form | Cursor's allowance was exhausted for the whole window: the account's monthly limit was spent, the API key's weekly limit was reached inside the window and does not reset until after the deadline, and the sponsor credit was never provisioned to us. The build was spec-first instead — twelve scoped prompts in `cursor-prompts/`, each with its acceptance gate, and `.cursor/rules/conquest.mdc` governing every step — so the identical prompts replay in Cursor the moment credit exists. **A caught false claim about this would cost the entry; a declared deviation costs a few points.** |
 | 3 | Zetaris over a live instance | **The published REST contract**, against a **local protocol-compatible server** | No instance was reachable: the local install needs Docker (unavailable) and the managed AWS stack stalled at account-binding and billing. The client is real — `OpenSqlQuery` → `PageSqlQuery` → `CloseSqlQuery`, Bearer auth, `X-Org-ID`, `X-Request-ID`, the `queryToken` carried through the page step, and the query **closed on the error path too**. The stub is on the *server* side, never in the client, and the **same command** runs against a live instance by changing one environment variable. |
 
 **A fourth deviation, in the same spirit as the third:** the build layer was opencode
@@ -38,7 +39,7 @@ run Nemotron unless a recorded run names the routing id.**
 |---|---|
 | Entry point exists and is documented | `src/index.ts` (`bun run swarm`) and `src/server.ts` (`bun run serve`) — **and `POST /run`**, the programmatic entry point a judge can call without clicking anything. Both are in the README's quick start. |
 | `.env.example` and `README.md` exist | Both, at the repository root. `.env` is gitignored; `.env.example` holds placeholders only. |
-| At least 3 input examples and 3 real output examples | `input_examples/` (3) and `output_examples/` (3), captured from **real runs** by the run itself. No runtime code reads them — that is checked. |
+| At least 3 input examples and 3 real output examples | `input_examples/` (3) and `output_examples/` (3), captured from **real runs** by the run itself (`bun run swarm -- --input input_examples/example_N.json`). No runtime code reads them — `grep -R "output_examples" src/` is empty. The three take three different paths: **accept**, **hold**, **fallback**, with three different `collaboration` blocks. |
 | No real `.env` or API keys committed | `.env` is gitignored; `.env.example` holds placeholders; the P10 gate is "no key in the tree". |
 | Repository is public | `https://github.com/muziconsulting-cloud/conquest-designer` |
 
@@ -47,7 +48,7 @@ run Nemotron unless a recorded run names the routing id.**
 | Item | Where |
 |---|---|
 | Zetaris integrated, with a real role in the build | `src/zetaris/` — the listing-and-trade event log. The client is the published contract; the demo runs it against the local protocol-compatible server (deviation 3 above). |
-| Meterless integrated, with a real role in the build | `src/engines/` — **H-MEM** (evidence reconciler, conflict critic), **World Model** (the canonical event log, the telemetry auditor), **Markovian** (the volume planner). Green against their own suites. |
+| Meterless integrated, with a real role in the build | The engine contracts and their published conformance suites are in play: `bun run engines:fetch` brings down `vendor/meterless/{hmem,world-model,markovian}`, and `bun run conformance` runs each sponsor's suite against **our** module (`HMEM_IMPL` / `WORLD_MODEL_IMPL` / `MARKOVIAN_IMPL`). The sponsors' reference implementations score 13/13, 8/8, 8/8 here; **our** implementations are P1–P3, and the script reports **PENDING** for each until the module exists — it does not borrow the reference score. The swarm's own engine seam is wired: `src/engine/registry.ts` resolves the Meterless provider, the local Meterless Runtime, or the deterministic offline renderer, and `src/engine/meterless.ts` speaks the provider contract (`<host>/v1`, bearer auth, `meterless-app`, `meterless-scope: user`, model ids discovered from `GET /v1/models`, 180 s timeout). |
 | Project developed in Cursor | **DECLARED DEVIATION — the build layer was opencode, not Cursor.** Cursor's allowance was exhausted for the whole window (account monthly limit spent; API-key weekly limit reached inside the window, resetting after the deadline; sponsor credit never provisioned). The build was spec-first against the twelve scoped prompts in `cursor-prompts/`, each carrying its acceptance gate, with `.cursor/rules/conquest.mdc` governing every step — so the identical prompts can be replayed in Cursor if the credit is provisioned. Stated here, in `SPONSORS.md` and in the submission form. |
 | NVIDIA used wherever it contributes | Reached through the Meterless fleet's model routing. Declared, not yet exercised, until a run names the routing id. |
 
@@ -64,7 +65,7 @@ run Nemotron unless a recorded run names the routing id.**
 
 | Item | Where |
 |---|---|
-| Written to `logs/` and stdout | `src/tracer.ts` — one JSONL line per agent step, `logs/<runId>.jsonl`. |
+| Written to `logs/` and stdout | `src/tracer.ts` — one JSONL line per agent step, `logs/<runId>.jsonl`. The four captured runs are committed (`logs/trace-20261022-001..004.jsonl`), so a judge can read the traces without running anything. |
 | Show agent names, actions, handoffs and statuses | Each line carries `timestamp`, `trace_id`, `agent_name`, `action`, `input_summary`, `output_summary`, `target_agent`, `confidence`, `retry_count`, `status` **alongside** the internal `AuditRecord` fields. `target_agent` is set on every handoff. |
 | Tied to the actual request | The response returns `log_path`, and that file exists when the response is sent. |
 
@@ -75,7 +76,7 @@ run Nemotron unless a recorded run names the routing id.**
 | No prewritten final answers | The agents process the input; there is no branch on a known question. Audited in P11 with a grep pass and a two-unrelated-queries test. |
 | `output_examples/` not loaded at runtime | Grep-checked in P11. They are evidence, not fixtures. |
 | `SAMPLE_MODE` uses sample inputs only | It loads **sample input data**. It never returns a prewritten answer, fakes agent interaction, or pretends a sponsor service was called. |
-| Different inputs produce meaningfully different outputs | The three shipped examples take three different paths — publish, **hold**, fallback. |
+| Different inputs produce meaningfully different outputs | The three shipped examples take three different paths — publish, **hold**, fallback — and the two-unrelated-queries test is run in P11. |
 
 ### Submission
 

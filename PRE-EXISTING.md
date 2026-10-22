@@ -8,6 +8,14 @@ This file is that declaration, in full. Everything below was committed **before
 2026-10-22T00:00Z** and is tagged **`pre-window-scaffold`**. Everything committed
 *after* that tag is the build — authored inside the window.
 
+**One more pre-window thing, disclosed because it involves our own code.** Before the
+window opened, two of the engine prompts were rehearsed on **throwaway copies outside
+this repository** (P1 → the H-MEM conformance suite 13/13, P2 → the World Model suite
+8/8, both `tsc --noEmit` clean). That code was **discarded**: none of it is in this
+repository, and the shipped engines in `src/engines/` are written inside the window. The
+rehearsals are disclosed here and in the README because a judge should never have to
+guess which code is which — the transcripts are in `evidence/rehearsal-usage.json`.
+
 Verify it yourself:
 
 ```bash
