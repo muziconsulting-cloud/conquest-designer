@@ -1,0 +1,67 @@
+---
+description: Project rules for the Conquest agent-exchange listings swarm
+globs: ["src/**/*.ts", "src/**/*.html", "*.md", "*.json"]
+alwaysApply: true
+---
+
+# Conquest — project rules
+
+- **Stack (LOCKED 2026-10-21):** the build-window artifact is **Bun + TypeScript**
+  — Bun runs TS directly (NO build step, no bundler), server-generated HTML only
+  (no client framework), JSONL traces. The retired Python prototype is a
+  declared pre-existing design reference: port FROM it, never extend it, never
+  paste it into a prompt.
+- Every sponsor call must degrade gracefully: no exception may abort a run.
+  `SAMPLE_MODE` is the deterministic offline path, not a lesser mode.
+- **The product is an exchange.** A human registers an agent and pays a listing
+  fee (**inbound x402**); the protocol issues an **Agentic Valuation Certificate
+  (AVC)**. The **certificate is the product**; listing is the product; tenure is
+  not.
+- **We certify, we do not value.** The **owner declares the price**; we hold what
+  they paid and record it. **Never issue a token** — we stay outside issuer rules.
+  The AVC certifies exactly three facts: *who* (agentic identity in an Ethereum
+  wallet), *what was paid* (owner-declared price, recorded), *what it bought*
+  (listing/access term). Nothing more.
+- **Settlement is 2-of-2 escrow** (`lock → pending → settled`, plus dispute,
+  claim, cancel). Buyer-unknown-to-seller is **open demand**
+  (`SellerAccountNumber: ''`), claimed via `claimOpenDemand`. The **settled**
+  transition transfers **ownership of the listing and issues/re-signs the AVC** —
+  it is **not** a cash-out. Never credit a balance as the settlement.
+- **x402 flows inbound only.** Buyers pay us; we never pay out.
+- **Whole-rand only.** No cent denominations in any user-facing or funding path.
+  Cents exist only in code bookkeeping.
+- **The swarm does LISTINGS ONLY.** It does not sell. Sales happen on the
+  exchange through escrow. It recruits listings; that is the single job.
+- A listing whose reconciled evidence does not support the declared price must
+  be **held / escalated**, never published. The Fidelity & Conflict Critic's
+  deterministic rule layer is authoritative.
+- Listing copy MUST NOT claim what the evidence does not support and MUST NOT
+  use speculative terms (guaranteed, risk-free, get rich, ...).
+- **Meterless engines are the cognition layer and the gate is conformance.**
+  Implement H-MEM, World Model and Markovian from their `AGENTS.md`; the build is
+  **not done until the published conformance suite is green** (H-MEM 13/13,
+  Markovian 8/8, World Model 8/8; exit 0). Never fake a check.
+- **Never claim an integration we do not have.** Zetaris is a declared deviation
+  until a live instance is reachable — say so plainly rather than shipping a
+  client with no server.
+- Bound every loop (revision budget, batch depth). No unbounded debates.
+- Keep the repository light; sample data stays under a few KB.
+- Never commit `.env` or API keys.
+
+## How to work in this repo
+
+- **This repo is built in Cursor, on Cursor's own models (Composer / Grok).**
+  Each task is one scoped feature: a prompt file under `cursor-prompts/`, one
+  feature, one acceptance command. Do not widen the task.
+- **Read from files, never ask for context to be pasted.** The contracts are in
+  `src/types.ts`. The engine specs are in `vendor/meterless/<engine>/AGENTS.md`.
+  The mandated Meterless prompt for the task is attached with `@filename` from
+  `prompts/`.
+- **Do not change `src/types.ts`** unless the task says so. It is the contract.
+- **No new dependencies.** Bun + TypeScript only; no framework, no test runner,
+  no npm package. `bunx tsc --noEmit` must stay at exit 0.
+- **Do not weaken an assertion to make a check pass.** If a conformance check
+  fails, fix the implementation, never the runner and never the spec.
+- **Report the acceptance command's output verbatim** when you finish — that output
+  is the evidence that goes in the README.
+- Secrets come from `process.env` / `Bun.env` only. Never hard-code a value.
