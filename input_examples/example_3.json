@@ -1,8 +1,10 @@
 {
   "request_id": "example-003",
-  "user_query": "Which listings degraded to fallback because a federated source was unavailable?",
+  "user_query": "One federated source did not answer on the Poundkeeper listing. What does the evidence that did answer support?",
   "context": {
     "track": "Solving Fragmented Intelligence",
-    "path": "fallback"
+    "listingIds": [
+      "LST-0004"
+    ]
   }
 }

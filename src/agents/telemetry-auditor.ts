@@ -1,46 +1,90 @@
-import type { AgentRunArgs, AgentStepResult } from './types.ts'
+/**
+ * The telemetry auditor — the role that records what happened, and the role the
+ * escalation lands on.
+ *
+ * Two jobs:
+ *  1. It writes the run's audit line for a listing: the decision, the conflicts, the
+ *     confidence, and whether the listing was escalated.
+ *  2. It narrates the decision. The narration goes through the LLM port — the one
+ *     seam a model uses. When no provider is configured, the offline adapter renders
+ *     the same facts deterministically. The decision itself is never the model's: the
+ *     rules decide, the port narrates.
+ */
 
-/** Stub: audits the run telemetry. One AuditRecord per listing. */
-export async function runTelemetryAuditor(args: AgentRunArgs): Promise<AgentStepResult> {
-  const { runId, step, listing, tracer, at } = args
+import type { LlmPort } from '../llm/port.ts'
+import type { Conflict } from '../types.ts'
+import type { StepTrace } from './contracts.ts'
 
-  const outcome =
-    listing.expectedPath === 'fallback'
-      ? ('fallback' as const)
-      : listing.expectedPath === 'hold'
-        ? ('escalated' as const)
-        : ('ok' as const)
+export type Decision = 'accept' | 'revise' | 'hold' | 'fallback'
 
-  const record = {
-    runId,
-    role: 'telemetry-auditor' as const,
-    step,
-    outcome,
-    detail: {
-      listingId: listing.listingId,
-      decision: listing.decision,
-      confidence: listing.confidence,
-      citations: listing.citations,
-      revised: listing.revised,
-      unavailableSources: listing.unavailableSources,
-    },
-    at,
+export interface AuditInput {
+  listingId: string
+  agentName: string
+  decision: Decision
+  listingCopy: string
+  conflicts: Conflict[]
+  confidence: number
+  /** True when the listing escalated — exactly once per listing, never twice. */
+  escalated: boolean
+  unavailable: string[]
+  llm: LlmPort
+}
+
+export interface AuditOutcome {
+  narrative: string
+  trace: StepTrace
+}
+
+export async function auditListing(input: AuditInput): Promise<AuditOutcome> {
+  const facts = {
+    kind: 'audit-narrative',
+    listingId: input.listingId,
+    agent: input.agentName,
+    decision: input.decision,
+    confidence: input.confidence,
+    conflicts: input.conflicts.length,
+    unavailable: input.unavailable,
+    escalated: input.escalated,
+    published: input.decision === 'accept' || input.decision === 'revise' || input.decision === 'fallback' ? 1 : 0,
+    held: input.decision === 'hold' ? 1 : 0,
+    revised: input.decision === 'revise' ? 1 : 0,
+    fallbacks: input.decision === 'fallback' ? 1 : 0,
   }
 
-  await tracer.writeLine(record, {
-    action: 'audit_telemetry',
-    input_summary: `Audit telemetry for ${listing.listingId}`,
-    output_summary: `decision=${listing.decision} confidence=${listing.confidence} citations=${listing.citations.length}`,
-    target_agent: null,
-    confidence: listing.confidence,
-    retry_count: 0,
-  })
+  let narrative: string
+  try {
+    const response = await input.llm.complete({
+      messages: [
+        { role: 'system', content: 'Summarise the listing decision in one sentence. No claims beyond the facts.' },
+        { role: 'user', content: JSON.stringify(facts) },
+      ],
+      temperature: 0,
+      maxTokens: 256,
+    })
+    narrative = response.text
+  } catch (error) {
+    // A provider that is down must not abort the run: the auditor falls back to the
+    // facts it already holds, and says so.
+    narrative =
+      `${input.listingId}: ${input.decision} (confidence ${input.confidence}). ` +
+      `The model was unavailable, so this line is the deterministic fallback.`
+  }
+
+  const escalationNote = input.escalated
+    ? ` Escalated once: ${input.conflicts
+        .map((conflict) => `${conflict.field} (${conflict.resolution.winner} won)`)
+        .join('; ')}.`
+    : ''
 
   return {
-    record,
-    decision: listing.decision,
-    confidence: listing.confidence,
-    critiqueChangedDecision: false,
-    critiqueFinding: null,
+    narrative,
+    trace: {
+      action: 'audit_telemetry',
+      outcome: input.escalated ? 'escalated' : input.decision === 'fallback' ? 'fallback' : 'ok',
+      input_summary: `${input.listingId} (${input.agentName}) closed as ${input.decision}.`,
+      output_summary: `${narrative}${escalationNote}`,
+      target_agent: null,
+      confidence: input.confidence,
+    },
   }
 }

@@ -1,84 +1,72 @@
-import type { AgentRunArgs, AgentStepResult, ListingDecision } from './types.ts'
+/**
+ * The conflict critic — the adversarial role.
+ *
+ * The critic is authoritative. It compares the reconciled evidence against the
+ * claim, and it does not soften:
+ *
+ *  - the price is not supported by the independent evidence -> **hold**
+ *  - the price is supported but another term disagrees -> **revise**
+ *  - everything agrees -> **accept**
+ *
+ * A critic that never holds anything is a broken critic. Holding is a success.
+ */
 
-/** Stub: critiques the closer's draft. One AuditRecord per listing. */
-export async function runConflictCritic(args: AgentRunArgs): Promise<AgentStepResult> {
-  const { runId, step, listing, tracer, at } = args
+import type { Critique, Listing } from '../types.ts'
+import type { Reconciliation } from './contracts.ts'
 
-  // Closer always starts tentativly published (or fallback); critic may overturn.
-  const provisional: ListingDecision =
-    listing.expectedPath === 'fallback' ? 'fallback' : 'published'
+const PRICE_FIELD = 'priceZar'
+const TERM_FIELD = 'termMonths'
 
-  let decision: ListingDecision = provisional
-  let critiqueChangedDecision = false
-  let critiqueFinding: string | null = null
-  let outcome: 'ok' | 'escalated' | 'fallback' = 'ok'
+export function critiqueListing(listing: Listing, recon: Reconciliation): Critique {
+  const declaredPrice = String(listing.declaredPriceZar)
+  const declaredTerm = String(listing.termMonths)
 
-  switch (listing.expectedPath) {
-    case 'accept':
-      decision = 'published'
-      listing.decision = decision
-      break
-    case 'hold':
-      decision = 'held'
-      listing.decision = decision
-      listing.reconciledPriceZar = null
-      critiqueChangedDecision = provisional !== decision
-      critiqueFinding =
-        listing.critiqueReason ??
-        'Declared price is not supported by the reconciled evidence'
-      outcome = 'escalated'
-      break
-    case 'revise':
-      listing.revised = true
-      decision = 'published'
-      listing.decision = decision
-      critiqueChangedDecision = true
-      critiqueFinding =
-        listing.critiqueReason ??
-        'The initial draft did not cite the source of each fact'
-      break
-    case 'fallback':
-      decision = 'fallback'
-      listing.decision = decision
-      critiqueFinding =
-        listing.critiqueReason ??
-        'A federated source was unavailable; degraded to fallback'
-      outcome = 'fallback'
-      break
+  const supportedPrice = recon.values[PRICE_FIELD]
+  if (supportedPrice === undefined) {
+    return {
+      verdict: 'hold',
+      reason: `No independent source supports the declared price of R${declaredPrice}.`,
+      conflicts: recon.conflicts,
+      supportingMemoryIds: recon.memoryIds,
+    }
   }
 
-  const record = {
-    runId,
-    role: 'conflict-critic' as const,
-    step,
-    outcome,
-    detail: {
-      listingId: listing.listingId,
-      provisionalDecision: provisional,
-      finalDecision: decision,
-      critiqueChangedDecision,
-      finding: critiqueFinding,
-      supportingCitations: listing.citations,
-    },
-    at,
+  if (supportedPrice !== declaredPrice) {
+    return {
+      verdict: 'hold',
+      reason:
+        `The reconciled evidence supports R${supportedPrice} (${recon.provenance[PRICE_FIELD]}), ` +
+        `not the declared R${declaredPrice}. The listing is held, not published.`,
+      conflicts: recon.conflicts,
+      supportingMemoryIds: recon.memoryIds,
+    }
   }
 
-  await tracer.writeLine(record, {
-    action: listing.expectedPath === 'revise' ? 'revise' : 'critique',
-    input_summary: `Critique provisional=${provisional} for ${listing.listingId}`,
-    output_summary: critiqueFinding
-      ? `Final=${decision}; changed=${critiqueChangedDecision}: ${critiqueFinding}`
-      : `Final=${decision}; changed=${critiqueChangedDecision}`,
-    target_agent: 'telemetry-auditor',
-    confidence: listing.confidence,
-    retry_count: 0,
-  })
+  const supportedTerm = recon.values[TERM_FIELD]
+  if (supportedTerm !== undefined && supportedTerm !== declaredTerm) {
+    return {
+      verdict: 'revise',
+      reason:
+        `The price agrees (R${declaredPrice}), but the term does not: the evidence says ` +
+        `${supportedTerm} months (${recon.provenance[TERM_FIELD]}), the declaration says ` +
+        `${declaredTerm}. Revise the term and publish.`,
+      conflicts: recon.conflicts,
+      supportingMemoryIds: recon.memoryIds,
+    }
+  }
 
+  const corroborating = recon.corroborated[PRICE_FIELD] ?? []
+  const single = corroborating.length === 1
   return {
-    record,
-    decision,
-    confidence: listing.confidence,
-    critiqueChangedDecision,
-    critiqueFinding,
+    verdict: 'accept',
+    reason:
+      `The reconciled evidence supports the declared price of R${declaredPrice}` +
+      ` (${recon.provenance[PRICE_FIELD]})` +
+      (single
+        ? `, on the one source that answered. The other source did not answer, so the ` +
+          `listing is published on degraded evidence.`
+        : `, confirmed by ${corroborating.length} independent sources.`),
+    conflicts: recon.conflicts,
+    supportingMemoryIds: recon.memoryIds,
   }
 }

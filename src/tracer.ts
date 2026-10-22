@@ -1,13 +1,17 @@
 /**
- * JSONL tracer — one enriched AuditRecord per agent step.
+ * The JSONL tracer — one line per agent step.
  *
- * Writes AuditRecord fields plus judge-facing enrichment at the top level.
- * Does not reshape the AuditRecord contract in src/types.ts.
+ * A judge who reads only `logs/<runId>.jsonl` must be able to reconstruct the run:
+ * who was called, in what order, with what, and what came back. So every line carries
+ * the internal `AuditRecord` fields AND the judge-readable fields, at the top level of
+ * the same object. The contract in `src/types.ts` is not reshaped to make this work —
+ * the enrichment happens here, in the tracer.
  */
 
-import { mkdir } from 'node:fs/promises'
-import { dirname } from 'node:path'
-import type { AgentRole, AuditRecord, RunId } from './types.ts'
+import { appendFileSync, mkdirSync } from 'node:fs'
+import type { AgentRole, AuditRecord } from './types.ts'
+
+export type TraceStatus = 'success' | 'error' | 'escalated' | 'fallback'
 
 export type TraceAction =
   | 'plan_sources'
@@ -18,76 +22,71 @@ export type TraceAction =
   | 'close_listing'
   | 'audit_telemetry'
 
-export type TraceStatus = 'success' | 'error' | 'escalated' | 'fallback'
-
-export interface TraceEnrichment {
-  action: TraceAction
-  input_summary: string
-  output_summary: string
-  target_agent: AgentRole | null
-  confidence: number | null
-  retry_count: number
-}
-
-export interface TraceLine extends AuditRecord {
+export interface TraceEntry extends AuditRecord {
+  /** ISO 8601 — the same instant as `at`. */
   timestamp: string
-  trace_id: RunId
+  trace_id: string
   agent_name: AgentRole
   action: TraceAction
   input_summary: string
   output_summary: string
+  /** The role this step handed to, or null if it finished. */
   target_agent: AgentRole | null
+  /** 0..1, or null when the step had no score. */
   confidence: number | null
   retry_count: number
   status: TraceStatus
 }
 
-function mapStatus(outcome: AuditRecord['outcome']): TraceStatus {
-  switch (outcome) {
-    case 'ok':
-      return 'success'
-    case 'error':
-      return 'error'
-    case 'escalated':
-      return 'escalated'
-    case 'fallback':
-      return 'fallback'
-  }
+export interface TraceInput {
+  role: AgentRole
+  action: TraceAction
+  outcome: AuditRecord['outcome']
+  detail: Record<string, unknown>
+  input_summary: string
+  output_summary: string
+  target_agent?: AgentRole | null
+  confidence?: number | null
+  retry_count?: number
+  at?: string
 }
 
-export function enrichRecord(record: AuditRecord, enrichment: TraceEnrichment): TraceLine {
-  return {
-    ...record,
-    timestamp: record.at,
-    trace_id: record.runId,
-    agent_name: record.role,
-    action: enrichment.action,
-    input_summary: enrichment.input_summary,
-    output_summary: enrichment.output_summary,
-    target_agent: enrichment.target_agent,
-    confidence: enrichment.confidence,
-    retry_count: enrichment.retry_count,
-    status: mapStatus(record.outcome),
-  }
-}
+const statusOf = (outcome: AuditRecord['outcome']): TraceStatus =>
+  outcome === 'ok' ? 'success' : outcome
 
 export class Tracer {
-  readonly runId: RunId
-  readonly logPath: string
-  private ready: Promise<void>
+  readonly runId: string
+  readonly path: string
+  private step = 0
 
-  constructor(runId: RunId, logPath: string) {
+  constructor(runId: string, dir = 'logs') {
     this.runId = runId
-    this.logPath = logPath
-    this.ready = mkdir(dirname(logPath), { recursive: true }).then(() => undefined)
+    this.path = `${dir}/${runId}.jsonl`
+    mkdirSync(dir, { recursive: true })
   }
 
-  async writeLine(record: AuditRecord, enrichment: TraceEnrichment): Promise<TraceLine> {
-    await this.ready
-    const line = enrichRecord(record, enrichment)
-    const file = Bun.file(this.logPath)
-    const prior = (await file.exists()) ? await file.text() : ''
-    await Bun.write(this.logPath, `${prior}${JSON.stringify(line)}\n`)
-    return line
+  write(input: TraceInput): TraceEntry {
+    this.step += 1
+    const at = input.at ?? new Date().toISOString()
+    const entry: TraceEntry = {
+      runId: this.runId,
+      role: input.role,
+      step: this.step,
+      outcome: input.outcome,
+      detail: input.detail,
+      at,
+      timestamp: at,
+      trace_id: this.runId,
+      agent_name: input.role,
+      action: input.action,
+      input_summary: input.input_summary,
+      output_summary: input.output_summary,
+      target_agent: input.target_agent ?? null,
+      confidence: input.confidence ?? null,
+      retry_count: input.retry_count ?? 0,
+      status: statusOf(input.outcome),
+    }
+    appendFileSync(this.path, `${JSON.stringify(entry)}\n`, 'utf8')
+    return entry
   }
 }

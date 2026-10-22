@@ -1,55 +1,85 @@
 /**
- * Resolves the LLM adapter for a run.
+ * The LLM registry — which adapter speaks for this run.
  *
- * Priority:
- *   1. SAMPLE_MODE=true → offline deterministic
- *   2. METERLESS_BASE_URL + METERLESS_API_KEY → hosted provider
- *   3. METERLESS_RUNTIME_TOKEN → local Meterless Runtime
- *   4. else → offline deterministic
+ * The order is fixed:
+ *   1. `SAMPLE_MODE=true` forces the offline deterministic adapter.
+ *   2. `METERLESS_BASE_URL` + `METERLESS_API_KEY` selects the hosted provider.
+ *   3. `METERLESS_RUNTIME_TOKEN` selects the local Meterless Runtime.
+ *   4. Otherwise the offline deterministic adapter.
+ *
+ * Nothing here reads a secret from a file — `Bun.env` only.
  */
 
-import { OfflineAdapter } from '../llm/offline.ts'
-import type { LlmConfig, LlmPort } from '../llm/port.ts'
-import { MeterlessProviderAdapter } from '../llm/provider.ts'
-import { MeterlessRuntimeAdapter } from '../llm/runtime.ts'
+import type { LlmHealth, LlmPort } from '../llm/port.ts'
+import { OfflineAdapter } from './offline.ts'
+import { MeterlessHttpAdapter } from './meterless.ts'
 
-function env(name: string): string | undefined {
-  const v = Bun.env[name] ?? process.env[name]
-  if (v === undefined || v === '') return undefined
-  return v
+export interface ResolvedLlm {
+  port: LlmPort
+  /** Which rule picked it. Written into the trace, so a judge can see the route. */
+  source: 'sample-mode' | 'provider' | 'runtime' | 'offline'
+  reason: string
 }
 
-function isSampleMode(): boolean {
-  const v = (env('SAMPLE_MODE') ?? '').toLowerCase()
-  return v === 'true' || v === '1' || v === 'yes'
-}
+export function resolveLlm(env: Record<string, string | undefined> = Bun.env): ResolvedLlm {
+  const sampleMode = (env['SAMPLE_MODE'] ?? '').toLowerCase() === 'true'
+  if (sampleMode) {
+    return {
+      port: new OfflineAdapter(),
+      source: 'sample-mode',
+      reason: 'SAMPLE_MODE=true — the deterministic offline path',
+    }
+  }
 
-export function loadLlmConfig(): LlmConfig {
+  const baseUrl = env['METERLESS_BASE_URL']
+  const apiKey = env['METERLESS_API_KEY']
+  if (baseUrl && apiKey) {
+    return {
+      port: new MeterlessHttpAdapter({
+        name: 'meterless-provider',
+        baseUrl,
+        token: apiKey,
+        appId: 'conquest-exchange',
+        preferredModel: env['METERLESS_MODEL'],
+        timeoutMs: env['METERLESS_TIMEOUT_MS']
+          ? Number(env['METERLESS_TIMEOUT_MS'])
+          : undefined,
+      }),
+      source: 'provider',
+      reason: 'METERLESS_BASE_URL and METERLESS_API_KEY are set',
+    }
+  }
+
+  const runtimeToken = env['METERLESS_RUNTIME_TOKEN']
+  if (runtimeToken) {
+    return {
+      port: new MeterlessHttpAdapter({
+        name: 'meterless-runtime',
+        baseUrl: env['METERLESS_RUNTIME_BASE_URL'] ?? 'http://127.0.0.1:8088/v1',
+        token: runtimeToken,
+        appId: 'conquest-exchange',
+        preferredModel: env['METERLESS_MODEL'],
+      }),
+      source: 'runtime',
+      reason: 'METERLESS_RUNTIME_TOKEN is set',
+    }
+  }
+
   return {
-    baseUrl: env('METERLESS_BASE_URL'),
-    apiKey: env('METERLESS_API_KEY'),
-    model: env('NEMOTRON_MODEL') ?? env('MODEL_ID'),
-    runtimeBaseUrl: env('METERLESS_RUNTIME_BASE_URL') ?? 'http://127.0.0.1:8088/v1',
-    runtimeToken: env('METERLESS_RUNTIME_TOKEN'),
-    appId: (env('METERLESS_APP_ID') ?? 'conquest-exchange').toLowerCase(),
-    timeoutMs: 180_000,
+    port: new OfflineAdapter(),
+    source: 'offline',
+    reason: 'no provider credentials — the deterministic offline path',
   }
 }
 
-export function resolveLlm(config: LlmConfig = loadLlmConfig()): LlmPort {
-  const appId = config.appId ?? 'conquest-exchange'
-
-  if (isSampleMode()) {
-    return new OfflineAdapter(appId)
+/** The health of the resolved adapter, never throwing out of the orchestrator. */
+export async function checkHealth(port: LlmPort): Promise<LlmHealth> {
+  try {
+    return await port.health()
+  } catch (error) {
+    return {
+      state: 'offline',
+      reason: error instanceof Error ? error.message : 'health check failed',
+    }
   }
-
-  if (config.baseUrl && config.apiKey) {
-    return new MeterlessProviderAdapter(config)
-  }
-
-  if (config.runtimeToken) {
-    return new MeterlessRuntimeAdapter(config)
-  }
-
-  return new OfflineAdapter(appId)
 }

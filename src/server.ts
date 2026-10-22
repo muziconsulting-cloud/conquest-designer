@@ -1,72 +1,67 @@
 /**
- * HTTP surface — Bun.serve.
- * POST /run is the programmatic entry point a judge calls without clicking.
+ * `bun run serve` — the HTTP surface.
+ *
+ * `POST /run` is the programmatic entry point: a judge can call it without clicking
+ * anything. The response is the same contract the CLI writes to disk.
  */
 
-import { type RunRequest, runRequest } from './pipeline.ts'
+import { runExchange } from './orchestrator/index.ts'
+import { createTraceSink } from './orchestrator/trace.ts'
 
-function parsePort(argv: string[]): number {
-  for (let i = 0; i < argv.length; i++) {
-    const a = argv[i]
-    if (a === '--port') {
-      const n = Number(argv[i + 1])
-      if (Number.isFinite(n) && n > 0) return n
-    } else if (a?.startsWith('--port=')) {
-      const n = Number(a.slice('--port='.length))
-      if (Number.isFinite(n) && n > 0) return n
-    }
-  }
-  const envPort = Bun.env.PORT ?? process.env.PORT
-  if (envPort) {
-    const n = Number(envPort)
-    if (Number.isFinite(n) && n > 0) return n
-  }
-  return 3000
+const args = process.argv.slice(2)
+let port = 3000
+for (let index = 0; index < args.length; index += 1) {
+  const arg = args[index] ?? ''
+  if (arg === '--port') port = Number(args[index + 1])
+  else if (arg.startsWith('--port=')) port = Number(arg.slice('--port='.length))
 }
-
-const port = parsePort(process.argv.slice(2))
 
 const server = Bun.serve({
   port,
-  async fetch(req) {
-    const url = new URL(req.url)
+  async fetch(request) {
+    const url = new URL(request.url)
 
-    if (req.method === 'POST' && url.pathname === '/run') {
-      let body: RunRequest
-      try {
-        body = (await req.json()) as RunRequest
-      } catch {
-        return Response.json(
-          { status: 'error', error: 'invalid JSON body' },
-          { status: 400 },
-        )
-      }
-      if (!body.request_id || !body.user_query) {
-        return Response.json(
-          { status: 'error', error: 'request_id and user_query are required' },
-          { status: 400 },
-        )
-      }
-      try {
-        const response = await runRequest(body)
-        return Response.json(response, { status: 200 })
-      } catch (err) {
-        return Response.json(
-          {
-            status: 'error',
-            error: err instanceof Error ? err.message : 'run failed',
-          },
-          { status: 500 },
-        )
-      }
+    if (url.pathname === '/health') {
+      return Response.json({ ok: true, service: 'conquest-exchange' })
     }
 
-    if (req.method === 'GET' && url.pathname === '/health') {
-      return Response.json({ ok: true, service: 'conquest-exchange' })
+    if (url.pathname === '/run' && request.method === 'POST') {
+      let body: unknown
+      try {
+        body = await request.json()
+      } catch {
+        return Response.json({ error: 'the request body is not JSON' }, { status: 400 })
+      }
+
+      const payload = body as {
+        request_id?: string
+        user_query?: string
+        context?: Record<string, unknown>
+      }
+
+      // Shape validation only — the run never branches on the question's wording.
+      const { request_id: requestId, user_query: userQuery, context } = payload
+      if (typeof requestId !== 'string' || typeof userQuery !== 'string') {
+        return Response.json(
+          { error: 'request_id and user_query are required' },
+          { status: 400 },
+        )
+      }
+
+      const response = await runExchange({
+        request: {
+          request_id: requestId,
+          user_query: userQuery,
+          context: context ?? {},
+        },
+        trace: createTraceSink(),
+      })
+
+      return Response.json(response)
     }
 
     return new Response('not found', { status: 404 })
   },
 })
 
-console.log(`conquest serve listening on http://127.0.0.1:${server.port}`)
+console.log(`conquest-exchange listening on http://127.0.0.1:${server.port}`)

@@ -7,6 +7,6 @@ node_modules/
 # Meterless engine specs are degit'd at build time and never vendored into the repo.
 # We implement from AGENTS.md and attribute Apache 2.0 in SPONSORS.md.
 vendor/
-logs/*.jsonl
+# The traces are the evidence a judge reads — they are committed on purpose.
 !logs/.gitkeep
 .DS_Store

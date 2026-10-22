@@ -1,59 +1,109 @@
 /**
- * Runs the three Meterless conformance suites against OUR implementations.
- * P0: scaffold only — engines land in P1–P3. Exit 0 when nothing is wired yet
- * so `bun run conformance` does not block the scaffold gate.
+ * The conformance gate — our implementations against the three Meterless suites.
+ *
+ * The runners are the sponsors'. They read `HMEM_IMPL`, `WORLD_MODEL_IMPL` and
+ * `MARKOVIAN_IMPL` and run OUR modules against the reference suites. Each runner is
+ * invoked with `bun` — no `npx tsx`, no network, no key.
+ *
+ * Until an engine exists the script says so, plainly, and exits non-zero. It never
+ * falls back to the reference implementation and reports that as ours.
+ *
+ * Run: `bun run scripts/conformance.ts`
  */
 
-export {}
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
+import { ROOT } from '../src/loading.ts'
 
-const ENGINES = [
-  { name: 'hmem', label: 'H-MEM', target: '13/13', implEnv: 'HMEM_IMPL' },
-  { name: 'world-model', label: 'World Model', target: '8/8', implEnv: 'WORLD_MODEL_IMPL' },
-  { name: 'markovian', label: 'Markovian', target: '8/8', implEnv: 'MARKOVIAN_IMPL' },
-] as const
-
-async function hasRunner(engine: string): Promise<boolean> {
-  return Bun.file(`vendor/meterless/${engine}/conformance/runner.ts`).exists()
+interface Engine {
+  key: 'hmem' | 'world-model' | 'markovian'
+  label: string
+  implPath: string
+  runnerPath: string
+  envVar: string
+  prompt: string
 }
 
-async function main(): Promise<void> {
-  console.log('conformance — Meterless engine gates')
-  let runnable = 0
+const ENGINES: Engine[] = [
+  {
+    key: 'hmem',
+    label: 'H-MEM',
+    implPath: 'src/engines/hmem/index.ts',
+    runnerPath: 'vendor/meterless/hmem/conformance/runner.ts',
+    envVar: 'HMEM_IMPL',
+    prompt: 'P1',
+  },
+  {
+    key: 'world-model',
+    label: 'World Model',
+    implPath: 'src/engines/world-model/index.ts',
+    runnerPath: 'vendor/meterless/world-model/conformance/runner.ts',
+    envVar: 'WORLD_MODEL_IMPL',
+    prompt: 'P2',
+  },
+  {
+    key: 'markovian',
+    label: 'Markovian',
+    implPath: 'src/engines/markovian/index.ts',
+    runnerPath: 'vendor/meterless/markovian/conformance/runner.ts',
+    envVar: 'MARKOVIAN_IMPL',
+    prompt: 'P3',
+  },
+]
+
+const main = async (): Promise<number> => {
+  console.log('conformance — our implementations against the sponsors\' suites')
+  console.log('')
+
+  if (!existsSync(join(ROOT, 'vendor/meterless'))) {
+    console.log('The engine specs are not on disk. Run: bun run engines:fetch')
+    return 1
+  }
+
+  let failures = 0
 
   for (const engine of ENGINES) {
-    const runner = `vendor/meterless/${engine.name}/conformance/runner.ts`
-    if (!(await hasRunner(engine.name))) {
-      console.log(`  · ${engine.label.padEnd(12)} skipped — no runner at ${runner}`)
+    const runner = join(ROOT, engine.runnerPath)
+    const impl = join(ROOT, engine.implPath)
+
+    if (!existsSync(runner)) {
+      console.log(`SKIP ${engine.label}: the runner is missing at ${engine.runnerPath}`)
+      failures += 1
       continue
     }
-    const impl = Bun.env[engine.implEnv] ?? process.env[engine.implEnv]
-    if (!impl) {
+
+    if (!existsSync(impl)) {
       console.log(
-        `  · ${engine.label.padEnd(12)} skipped — set ${engine.implEnv}=<path> (target ${engine.target})`,
+        `PENDING ${engine.label}: ${engine.implPath} is not written yet (${engine.prompt}). ` +
+          'The reference implementation scores well; ours does not exist yet, and this script ' +
+          'will not pretend otherwise.',
       )
+      failures += 1
       continue
     }
-    runnable++
-    console.log(`  → ${engine.label.padEnd(12)} ${engine.implEnv}=${impl}`)
-    const proc = Bun.spawn(['bun', runner], {
-      env: { ...process.env, [engine.implEnv]: impl },
+
+    console.log(`RUN ${engine.label} (${engine.envVar}=${engine.implPath})`)
+    const proc = Bun.spawn({
+      cmd: ['bun', runner],
+      cwd: ROOT,
+      env: { ...process.env, [engine.envVar]: impl },
       stdout: 'inherit',
       stderr: 'inherit',
     })
     const code = await proc.exited
     if (code !== 0) {
-      console.error(`conformance failed: ${engine.label} exit ${code}`)
-      process.exit(code)
+      console.log(`FAIL ${engine.label}: the runner exited ${code}`)
+      failures += 1
     }
+    console.log('')
   }
 
-  if (runnable === 0) {
-    console.log('  (no engines wired yet — P1–P3 will light these up)')
+  if (failures > 0) {
+    console.log(`FAIL ${failures} engine(s) are not passing their suite yet`)
+    return 1
   }
-  console.log('conformance: ok')
+  console.log('PASS all three engines pass their suites')
+  return 0
 }
 
-main().catch((err) => {
-  console.error(err instanceof Error ? err.message : err)
-  process.exit(1)
-})
+process.exitCode = await main()

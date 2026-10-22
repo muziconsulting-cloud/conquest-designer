@@ -1,8 +1,10 @@
 {
   "request_id": "example-001",
-  "user_query": "Which listings have a declared price the evidence does not support?",
+  "user_query": "The Solariser listing: does the independent evidence support the declared R1440, and should it be published?",
   "context": {
     "track": "Solving Fragmented Intelligence",
-    "path": "hold"
+    "listingIds": [
+      "LST-0001"
+    ]
   }
 }

@@ -1,8 +1,10 @@
 {
   "request_id": "example-002",
-  "user_query": "Which listings are ready to publish because the reconciled evidence supports the declared price?",
+  "user_query": "Which listing declares a price that the reconciled evidence contradicts?",
   "context": {
     "track": "Solving Fragmented Intelligence",
-    "path": "accept"
+    "listingIds": [
+      "LST-0002"
+    ]
   }
 }
