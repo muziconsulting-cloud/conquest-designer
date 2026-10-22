@@ -17,6 +17,40 @@
 - `src/orchestrator/fallback.ts` — the fallback path.
 - `src/orchestrator/trace.ts` — the JSONL trace sink.
 
+**What the orchestrator must report back.** The HTTP response (P0's `POST /run`
+contract) has a `collaboration` block, and it is the **proof that the agents actually
+collaborated** rather than ran in sequence. The orchestrator returns it:
+
+```ts
+collaboration: {
+  feedback_loop_completed: boolean  // true only if a critique CHANGED a decision
+  revision_count: number            // how many times a listing was sent back
+  evaluator_findings: string[]      // the critiques raised, in order
+}
+```
+
+- `feedback_loop_completed` is `false` when the critic raised nothing, and `false` when
+  it raised something that nobody acted on. It is `true` only when a critique changed
+  the outcome of a listing.
+- `revision_count` counts the sends-back. It must never exceed one per listing.
+- `evaluator_findings` is empty when there were none. **Do not invent a critique to
+  make the block look better.**
+
+**The trace must show the handoff, not just the steps.** The tracer writes the
+judge-readable fields specified in P0 (`action`, `input_summary`, `output_summary`,
+`target_agent`, `confidence`, `retry_count`, `status` alongside the `AuditRecord`
+fields). Two things are non-negotiable in it:
+
+- **`target_agent` is set on every handoff** — the role the step handed to. A trace
+  where every `target_agent` is `null` shows no collaboration.
+- The critic's `action` is `critique` and its `output_summary` says what it objected
+  to, in words. The revised step's `action` is `revise` and its `input_summary` names
+  the critique it is answering. That pair is what a judge reads to see a feedback loop.
+
+**The trace is the deliverable.** A judge who reads only `logs/<runId>.jsonl` must be
+able to reconstruct the collaboration: who was called, in what order, with what, and
+what came back.
+
 **The shape**
 
 ```

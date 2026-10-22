@@ -57,8 +57,18 @@ Full spec: [`docs/AVC-SPEC.md`](./docs/AVC-SPEC.md).
 - `src/zetaris/adapter.ts` — the Zetaris adapter. One adapter; no parallel client.
 - `prompts/` — the mandated Meterless prompt library, bound by `@filename`. Use these
   prompts; do not paraphrase the prompt library into your own text.
-- `cursor-prompts/p0…p10` — the 11 scoped build prompts. **The build is reproducible from
-  them** — that is the proof the work was done in Cursor.
+- `cursor-prompts/p0…p11` — the **12** scoped build prompts. **The build is reproducible
+  from them** — that is the proof the work was done in Cursor.
+- `POST /run` — the **programmatic entry point**, specified in `p0` and implemented in
+  `src/server.ts`. A judge must be able to run the system without clicking anything.
+  The request/response contract is fixed: `request_id`, `user_query`, `context` in;
+  `trace_id`, `status`, `agents_used`, `result`, `collaboration`, `log_path` out.
+- The **JSONL trace schema** — fixed in `p0`: `timestamp`, `trace_id`, `agent_name`,
+  `action`, `input_summary`, `output_summary`, `target_agent`, `confidence`,
+  `retry_count`, `status` alongside the internal `AuditRecord` fields. `target_agent` is
+  set on every handoff. A judge reads this file to see the collaboration.
+- `p11` is **not optional**: three real output examples, the anti-hardcode audit, the
+  documentation audit, and the clean-clone proof. Never cut it.
 - `.cursor/rules/conquest.mdc` — auto-loaded by Cursor on every run. It is the
   authoritative code-quality contract (no new deps, no invented APIs, bound every loop,
   whole-rand only, secrets from `Bun.env` only, never weaken an assertion).
@@ -145,7 +155,10 @@ prompts/                  mandated Meterless prompt library (9 files, @filename-
 cursor-prompts/           11 scoped Cursor prompts + README + RUNBOOK
 fixtures/listing-set.json the four fixture paths: accept / revise / hold / fallback
 evidence/                 the build evidence, published
-docs/                     AVC-SPEC, BUILD-LEDGER, docs/README
+docs/                     AVC-SPEC, BUILD-LEDGER, COMPLIANCE-MAP, docs/README
+input_examples/           three request files, three different paths
+output_examples/          three REAL responses, captured from runs
+data/                     the sample source records the offline adapter reads
 logs/                     Cursor run transcripts (.jsonl ignored)
 tools/hackathon-compliance/  the gate + deliverable monitor
 README.md SPONSORS.md metadata.json  the front door
@@ -168,6 +181,17 @@ PRE-EXISTING.md SUBMISSION.md DECK.md DEMO.md  the declarations and deliverables
   docs and rules.
 
 **Next move:** as soon as Cursor capacity exists, fire P0 → P1 → P2 → P3 (the three
-engines to 13/13, 8/8, 8/8) → P4 → P5 → P6 → P7 → P8 → P9 → P10, one step at a time, with
-the RUNBOOK's gates. If capacity does not arrive, the fallback order is in the RUNBOOK —
-and the **honest ledger** gets updated either way.
+engines to 13/13, 8/8, 8/8) → P4 → P5 → P6 → P7 → P8 → P9 → P10 → **P11**, one step at a
+time, with the RUNBOOK's gates. P11 is the submission-integrity step: three real output
+examples, the anti-hardcode audit, the documentation audit and the clean-clone proof.
+
+**If capacity does not arrive:** the fallback order is in the RUNBOOK, and the **honest
+ledger** gets updated either way. But check one thing first — the organiser's guide says
+the Cursor credit is activated *"using the instructions in the Space XAI and Cursor
+folder in Resources on HackOS"*. That folder is where the credit lands, and it is
+cheaper than a paid plan.
+
+**The organiser's own final checklist, answered line by line:**
+[`docs/COMPLIANCE-MAP.md`](./docs/COMPLIANCE-MAP.md) — including the three declared
+deviations (Bun instead of Python, no Dockerfile, the Zetaris local protocol-compatible
+server) and the reason for each.

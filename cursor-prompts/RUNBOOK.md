@@ -75,10 +75,34 @@ table is committed.
 | 9 | `p8-self-listing.md` | register→pay→redeem→self-list; token reuse refused | Impact |
 | 10 | `p9-html-surface.md` | every route 200, numbers come from the pipeline | Product & UX |
 | 11 | `p10-llm-seam.md` | three adapters, one port, no key in the tree | Sponsor / in-kind |
+| 12 | `p11-examples-and-audit.md` | 3 real outputs, hardcode audit clean, clean clone runs | **Submission integrity** |
+
+**P11 is not optional and it is not a polish step.** It produces the three real output
+examples, the anti-hardcode audit, the documentation audit and the clean-clone proof.
+A submission that claims a run it cannot reproduce is worth less than no submission.
 
 **If the credit runs short**, cut in this order: HTML surface polish → the offline LLM
 adapter → self-listing → (never) an engine, the AVC, or the Zetaris adapter. The three
-engines and the AVC are the score.
+engines and the AVC are the score. **Never cut P11** — it is the cheapest way to prove
+the whole thing is real.
+
+## 3a · The six-day plan, mapped to the steps
+
+The organiser's build plan, mapped onto the steps above. **Run the steps in the
+RUNBOOK order; this is the calendar it lands on.**
+
+| Day | Date | Focus | Steps |
+|---|---|---|---|
+| 1 | 22 Oct | scaffold, wire the entry point, one real end-to-end run | P0, P6, P10 |
+| 2 | 23 Oct | the agent loop, the feedback loop, the JSONL trace | P4, P5 |
+| 3 | 24 Oct | the three engines green against their own suites | P1, P2, P3 |
+| 4 | 25 Oct | the certificate, the self-listing, the surface | P7, P8, P9 |
+| 5 | 26 Oct | real outputs, README, deck, **the demo video** | P11, docs |
+| 6 | 27 Oct | final audit, secrets check, declare, **submit well before 23:45 UTC** | P11 gates |
+
+**Two dates that are not negotiable:** the demo video must be **recorded and uploaded
+by day 5** — a video recorded on the deadline day is a video that misses the deadline.
+And the submission goes in **hours** before 23:45 UTC on the 27th, not minutes.
 
 ## 4 · Gates that must pass before submission
 
@@ -92,6 +116,9 @@ python3 tools/hackathon-compliance/scripts/compliance_check.py   # 0 FAIL
 
 `demo_video` and `slide_deck` are the two deliverables still open — record the walkthrough
 of the running surface and cut the deck from the README's build-evidence table.
+
+**Also before submission** — the organiser's own final checklist, mapped line by line to
+where each item is satisfied: [`docs/COMPLIANCE-MAP.md`](../docs/COMPLIANCE-MAP.md).
 
 ## 5 · The honesty rules for the write-up
 

@@ -12,6 +12,11 @@ small router in `src/server.ts` (Bun.serve). **No client framework, no bundler, 
 build step, no npm dependency.** Plain HTML strings with inline `<script>` where a page
 needs to be interactive. Bun runs the TypeScript directly.
 
+> `src/server.ts` already exists — P0 created it with the **`POST /run`** programmatic
+> entry point. **Keep `POST /run` working and unchanged.** You are adding the HTML
+> routes to the same server, not replacing it. `POST /run` is what a judge calls
+> without clicking anything; the HTML is what a judge reads. Both must work.
+
 **The pages**
 
 | Route | Shows |
@@ -22,6 +27,25 @@ needs to be interactive. Bun runs the TypeScript directly.
 | `/avc/:id` | one certificate: the three facts, the signature, and a live **verify** result |
 | `/agents` | the five agents, what each decided, and the trace |
 | `/trace` | the JSONL trace, rendered |
+| `/health` | `{"ok":true}` — so a judge can check the service is up |
+
+**The judge's quick start belongs in the README.** A judge who has never seen this
+codebase must be able to reach a working run in four commands, copy-pasteable, with
+the expected output shown. Put this exact block in `README.md` (the run uses the
+port the README says, and the command is the one the README documents):
+
+```bash
+bun install
+bun run swarm -- --input input_examples/example_1.json
+bun run serve -- --port 3000
+curl -s -X POST http://127.0.0.1:3000/run -H 'Content-Type: application/json' \
+  -d @input_examples/example_1.json
+```
+
+The `curl` must print the response contract from P0, and `README.md` must show that
+response. **The README's commands are the judge's first impression of whether this
+runs** — if a command in the README does not work, the whole submission reads as
+unverified. Every command in the README must be one that was actually run.
 
 **The rules**
 
