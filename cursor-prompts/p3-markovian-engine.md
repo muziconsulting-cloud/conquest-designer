@@ -64,7 +64,7 @@ reassembly, not the intent.
 
 ```bash
 MARKOVIAN_IMPL=/abs/path/to/src/engines/markovian/index.ts \
-  npx tsx vendor/meterless/markovian/conformance/runner.ts
+  bun vendor/meterless/markovian/conformance/runner.ts
 ```
 
 prints **8/8 passed** and exits **0**. The runner exits `1` on a failed check and `2` if

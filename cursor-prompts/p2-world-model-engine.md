@@ -62,7 +62,7 @@ wire it to our domain: the **listing and trade event log**.
 
 ```bash
 WORLD_MODEL_IMPL=/abs/path/to/src/engines/world-model/index.ts \
-  npx tsx vendor/meterless/world-model/conformance/runner.ts
+  bun vendor/meterless/world-model/conformance/runner.ts
 ```
 
 prints **8/8 passed** and exits **0**. Then `bunx tsc --noEmit` exits 0.

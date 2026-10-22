@@ -182,8 +182,8 @@ action — and note it is **spec + eval harness** (no conformance suite shipped)
 The suites are executable against **any** implementation via an environment variable:
 
 ```bash
-HMEM_IMPL=/abs/path/to/our/hmem/index.ts          npx tsx conformance/runner.ts
-WORLD_MODEL_IMPL=/abs/path/to/our/world-model.ts  npx tsx conformance/runner.ts
+HMEM_IMPL=/abs/path/to/our/hmem/index.ts          bun vendor/meterless/<engine>/conformance/runner.ts
+WORLD_MODEL_IMPL=/abs/path/to/our/world-model.ts  bun vendor/meterless/<engine>/conformance/runner.ts
 ```
 
 **Our build is not done until our own implementations are green against these same suites.**

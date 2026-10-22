@@ -33,9 +33,9 @@ green **for our own implementation** — not for the reference.
 
 | # | File | Mandated prompt | Bound to | Stop rule |
 |---|---|---|---|---|
-| 01 | `01-hmem-memory-evidence-reconciler.md` | *Give my agent memory* (Implement) | Evidence Reconciler + Fidelity & Conflict Critic | `HMEM_IMPL=… npx tsx conformance/runner.ts` green (13/13) |
-| 02 | `02-world-model-canonical-listing-log.md` | *Keep parallel agents in sync* (Implement) | the canonical listing & trade event log | `WORLD_MODEL_IMPL=… npx tsx conformance/runner.ts` green (8/8) + re-ingest diff empty |
-| 03 | `03-markovian-bounded-long-runs.md` | *Long tasks, flat context* (Implement) | Volume Planner + Telemetry Auditor | `MARKOVIAN_IMPL=… npx tsx conformance/runner.ts` green (8/8) + flat context per step |
+| 01 | `01-hmem-memory-evidence-reconciler.md` | *Give my agent memory* (Implement) | Evidence Reconciler + Fidelity & Conflict Critic | `HMEM_IMPL=… bun vendor/meterless/<engine>/conformance/runner.ts` green (13/13) |
+| 02 | `02-world-model-canonical-listing-log.md` | *Keep parallel agents in sync* (Implement) | the canonical listing & trade event log | `WORLD_MODEL_IMPL=… bun vendor/meterless/<engine>/conformance/runner.ts` green (8/8) + re-ingest diff empty |
+| 03 | `03-markovian-bounded-long-runs.md` | *Long tasks, flat context* (Implement) | Volume Planner + Telemetry Auditor | `MARKOVIAN_IMPL=… bun vendor/meterless/<engine>/conformance/runner.ts` green (8/8) + flat context per step |
 | 04 | `04-scout-intent-signed-execution-contract.md` | *Sign every tool call* (Implement) | the signed contract in front of settlement | one accepted call, one refused call, `npm run evals` report |
 | 05 | `05-full-stack-one-agent.md` | *The full stack in one agent* (Combine) | the whole swarm as one pipeline | three conformance suites + evals green + the data-flow diagram |
 | 06 | `06-many-drafts-one-shared-state.md` | *Many drafts, one shared state* (Combine) | the five agents running in parallel on one state | three drafts that saw one another's changes |

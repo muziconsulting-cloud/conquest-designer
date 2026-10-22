@@ -1,121 +1,246 @@
-# DEMO — the 3-minute walkthrough
+# DEMO — the video content
 
-**The claim this demo has to earn:** an agent can be priced, listed, bought and
+**The claim the video has to earn:** an agent can be priced, listed, bought and
 certified — and the certificate says only three things, all of them true.
 
-**Setup (before you record):**
+**Target length: 3:00.** The organiser allows 1–4 minutes. **Record it on day 5, not
+on deadline day** — a video recorded at 23:40 is a video that misses the deadline.
 
-```bash
-bun install
-npx degit meterless/meterless/engines/hmem vendor/meterless/hmem
-npx degit meterless/meterless/engines/world-model vendor/meterless/world-model
-npx degit meterless/meterless/engines/markovian vendor/meterless/markovian
-bun run conformance        # 13/13, 8/8, 8/8
-bun run swarm              # the pipeline over the fixtures
-bun run serve -- --port 3001
-```
-
-Record at a terminal with the browser beside it. No slides during the demo.
+**The deliverable description requires four things in the video.** They are marked
+`[workflow]` `[challenge]` `[features]` `[sponsors]` against the shots that carry them.
+The compliance checker's `demo_video` gate looks for a real video file
+(`*.mp4 / *.mov / *.webm / *.mkv`) in the repository — so **put the exported file in the
+repo** as `demo/demo.mp4`, and also upload it (unlisted YouTube or Drive) because the
+submission form wants a URL.
 
 ---
 
-### 1 · The exchange at a glance — `/`
+## Pre-flight — before you press record
 
-> "This is the exchange. Agents are the things being traded. Here is what has been
-> listed, what settled, and what is being held."
+Do these once, then record with a clean desktop:
 
-**Say while it is on screen:** every number on this page came out of the pipeline.
-Nothing is hard-coded.
+```bash
+bun install
+npx degit meterless/meterless/engines/hmem        vendor/meterless/hmem
+npx degit meterless/meterless/engines/world-model vendor/meterless/world-model
+npx degit meterless/meterless/engines/markovian   vendor/meterless/markovian
+bun run conformance        # 13/13, 8/8, 8/8 — the numbers you quote must be THESE
+bun run swarm -- --input input_examples/example_1.json
+bun run serve -- --port 3001
+curl -s -X POST http://127.0.0.1:3001/run -H 'Content-Type: application/json' \
+  -d @input_examples/example_1.json | head -40
+```
 
-### 2 · A listing with its evidence — `/listings`
+- [ ] Terminal font **large** (18–20pt). The trace lines are the point — do not let them shrink.
+- [ ] Browser zoom **110%**, browser window full-width, **notifications and tabs cleared**
+      (a judge can read a tab title, and your tab bar is not part of the product).
+- [ ] `SAMPLE_MODE=true` in `.env` — the demo must not wait on a credential.
+- [ ] No `.env`, no key, no personal account visible in any window.
+- [ ] The `curl` above works. **If the programmatic call does not work, the video is not ready.**
+- [ ] Your screen is not mirrored to a meeting app. No cursor wandering.
 
-> "Each listing carries a declared price and the memory ids its evidence cites. The
-> citation is the point — a claim that cannot name where it came from is refused, not
-> shown."
+---
 
-**Say while it is on screen:** click one listing. Go to step 3.
+## The shot list
 
-### 3 · One listing in full — `/listing/:id`
+Ten shots. **Narration is written to be read as-is** — do not improvise, the timing is
+budgeted. A shot that fails is re-shot; it is never left broken.
 
-> "Price, evidence, critique, escalation, trace. The conflict critic tried to break this
-> listing. Here is what it found."
+### Shot 1 · Title card — 0:00 → 0:12
 
-**Say while it is on screen:** the trace shows every step and which role took it.
+**SCREEN:** black card, one line, then the pipeline diagram fading in behind it.
+**ON-SLIDE TEXT:** `Conquest` / *the exchange that certifies what you paid for*
+**NARRATION:**
+> "This is Conquest. It is an exchange where the agent is the traded asset — priced,
+> listed, bought, and certified when the trade settles."
 
-### 4 · The held listing — `/listings` → the held one
+---
 
-> "This one is **held**. Its evidence does not support its declared price, so it was not
-> published. Holding is a success, not an error — the failure mode for an exchange that
-> sells agents is publishing a bad price."
+### Shot 2 · The challenge — 0:12 → 0:32  `[challenge]`
 
-### 5 · The certificate — `/avc/:id`
+**SCREEN:** the exchange home page `/`, the "held" listing visible in the list.
+**NARRATION:**
+> "The problem is not that agents are being sold. It is that they are being sold with
+> nothing behind the price. A buyer gets a claim, a seller gets a promise, and neither
+> gets a document that says who owned what was paid for. So the first thing this
+> exchange does is refuse to publish a price the evidence does not support. That held
+> listing you can see there — that is the design working, not the design failing."
 
-> "A trade settled, and only then was a certificate issued. It says three things: **who**
-> owns the listing — an agentic identity in a wallet; **what was paid**; and **what it
-> bought**. It is not a valuation, and it is not a token."
+**IF IT FAILS:** use a still of the home page and keep the narration — but this shot must
+show a real held listing, so fix the fixture instead of cutting the shot.
 
-**Say while it is on screen:** show the verify result. Then show that a tampered
-certificate fails verification. "Verification reads the signed bytes. It does not ask
-the issuer whether it is happy."
+---
 
-### 6 · An agent listing itself — the self-listing path
+### Shot 3 · The workflow, end to end — 0:32 → 1:06  `[workflow]`
+
+**SCREEN:** `/listings` → click one listing → `/listing/:id`.
+**ACTION:** scroll the evidence, the critique, the escalation.
+**NARRATION:**
+> "Here is one listing in full. The agent declared its own price. The pipeline pulled the
+> evidence, reconciled what disagreed, and cited the memory ids it used — you can see
+> those citations on the page. The conflict critic then tried to break the listing.
+> Here is what it objected to, and here is what the closer did about it. Every step of
+> that is in a JSONL trace, one line per step, with the agent that took the next step
+> named on it. A step with no trace line is a failed step."
+
+**IF IT FAILS:** show the trace file directly in the terminal (`cat logs/<runId>.jsonl`)
+and narrate over it — the trace is the stronger shot anyway.
+
+---
+
+### Shot 4 · The certificate — 1:06 → 1:38  `[features]`
+
+**SCREEN:** `/avc/:id` — the certificate, then the verify action.
+**ACTION:** verify it. Then show a tampered copy failing verification.
+**NARRATION:**
+> "A trade settled, and only then was a certificate issued. It says three things. Who —
+> the agentic identity in the wallet. What was paid — amount, currency, payment
+> reference. And what it bought — the listing or the access term. Three facts. It is not
+> a valuation, the venue records a declared price and does not appraise, and it is not a
+> token. Verification reads the signed bytes alone — it does not ask the issuer whether
+> it is happy. Watch: one character changed, and it fails."
+
+**IF IT FAILS:** show only the valid certificate and the verify output. Do not narrate the
+tamper test if you cannot show it.
+
+---
+
+### Shot 5 · The agent lists itself — 1:38 → 2:00  `[features]`
+
+**SCREEN:** terminal.
 
 ```bash
 bun run listing:selftest
 ```
 
+**NARRATION:**
 > "A human registers and pays once. That buys a listing token — the right to list, once.
-> The agent then sets its **own** price and goes through the same evidence pipeline. It
-> cannot skip the critic by being self-listed. Watch what happens when the token is
-> reused."
+> The agent then sets its own price and goes through the same evidence pipeline as anyone
+> else. It cannot skip the critic by being self-listed. And the token is good for one
+> listing: watch what happens when it is used twice."
 
-**Say while it is on screen:** the reuse is refused.
+**IF IT FAILS:** the reuse refusal is the shot. If the self-test does not exist, show the
+`/listings` page and narrate the protocol — but the reuse refusal is worth the retake.
 
-### 7 · The fallback — the run still finishes
+---
+
+### Shot 6 · The fallback — 2:00 → 2:16
+
+**SCREEN:** terminal, two runs.
+**ACTION:**
 
 ```bash
-METERLESS_PROVIDER_URL= SAMPLE_MODE=true bun run swarm
-# then, with the provider pointed at a dead port:
-METERLESS_PROVIDER_URL=http://127.0.0.1:9 bun run swarm
+SAMPLE_MODE=true bun run swarm                      # the normal path
+METERLESS_BASE_URL=http://127.0.0.1:9 bun run swarm  # the dependency is dead
 ```
 
-> "When a dependency is down, the orchestrator does not fall over and does not pretend.
-> It degrades to a deterministic decision and marks it in the trace. The run finishes;
-> the trace tells the truth about what happened."
+**NARRATION:**
+> "Now the dependency is down. The run does not fall over and it does not pretend. It
+> degrades to one bounded deterministic decision, marks it in the trace, and finishes.
+> The trace tells the truth about what happened."
 
-### 8 · The engines — the technical proof
+**IF IT FAILS:** keep the first command and narrate the fallback from the trace line
+that says it. Do not fake a dead dependency.
+
+---
+
+### Shot 7 · The engines — 2:16 → 2:36  `[sponsors]`
+
+**SCREEN:** terminal.
 
 ```bash
 bun run conformance
 ```
 
-> "These are our implementations of three Meterless engines, passing their own
-> conformance suites: **13/13**, **8/8**, **8/8**. We wrote them from the engine
-> contracts; we did not vendor the reference implementations."
+**NARRATION:**
+> "These are our implementations of three Meterless engines, passing Meterless's own
+> conformance suites — thirteen out of thirteen for H-MEM, eight out of eight for the
+> World Model, eight out of eight for Markovian. H-MEM is the memory the reconciler and
+> the critic cite. The World Model is the canonical event log the auditor reads. We
+> wrote them from the engine contracts. We did not vendor the reference
+> implementations."
 
-### 9 · The Zetaris adapter
+**IF IT FAILS:** **do not quote a number you cannot show.** Say the suites are the gate and
+show the command; fix it and re-shoot. A wrong number here is the one thing a judge will
+check.
+
+---
+
+### Shot 8 · The federation — 2:36 → 2:52  `[sponsors]`
+
+**SCREEN:** terminal.
 
 ```bash
 bun run zetaris:selftest
 ```
 
-> "Our client speaks the published Zetaris REST contract — open, page, close, with the
-> query token released. The demo runs it against a local server that speaks the same
-> protocol, because no shared instance was granted. This is the exact same command
-> pointed at a real instance."
+**NARRATION:**
+> "The federation layer is Zetaris. Our client speaks the published REST contract — open
+> the query, page it with the query token, close it, on every path including the error
+> path. The demo runs it against a local server that speaks the same protocol, because
+> no shared instance was granted to us. That is a documented deviation, not a hidden one.
+> The stub is server-side, the client is real, and the identical command runs against a
+> live instance."
 
-### 10 · Close
-
-> "The exchange has one rule: value only moves through settlement, and every settlement
-> leaves a certificate that says three true things. That is the whole product."
+**IF IT FAILS:** keep the narration honest — say the contract, show the code path, and
+name the deviation. Do not imply a live instance you did not reach.
 
 ---
 
-## Recording notes
+### Shot 9 · The close — 2:52 → 3:00
 
-- **One take, no edits** unless something breaks.
-- Terminal font large enough to read. The trace lines are the point — do not cut them.
-- **Do not show a number the pipeline did not produce.** If a panel is empty, say it is
-  empty.
-- The **Zetaris** and **local-runtime** honesty lines above are spoken, not implied. The
-  judges will check.
+**SCREEN:** the certificate page, or the exchange home page.
+**NARRATION:**
+> "One rule: value only moves through settlement, and every settlement leaves a
+> certificate that says three true things. The exchange is on GitHub, and the build is
+> reproducible from the prompts in the repository."
+
+**ON-SLIDE TEXT (end card):** the repo URL.
+
+---
+
+## The video, as a submission
+
+**Title:** `Conquest — the exchange that certifies what you paid for`
+
+**Description:**
+
+> Conquest is an exchange where the agent is the traded asset: priced, listed, bought, and
+> certified on settlement by an Agentic Valuation Certificate that records exactly three
+> things — who, what was paid, and what it bought. It is not a valuation and not a token.
+>
+> The interesting part is what it refuses. A declared price goes through an evidence
+> pipeline — a volume planner, an evidence reconciler, a listing closer and an adversarial
+> conflict critic, over three Meterless engines (H-MEM, World Model, Markovian), each
+> gated by Meterless's own conformance suite. When the evidence does not support the
+> price, the listing is held rather than published. Holding is a feature.
+>
+> Five agents, two loops, one bounded escalation, one JSONL trace line per step.
+> Built in Cursor, one scoped prompt per feature; every prompt is in the repository, so
+> any feature can be re-run from it.
+>
+> Zetaris: our client speaks the published REST contract (OpenSqlQuery → PageSqlQuery →
+> CloseSqlQuery, query token released on every path). No shared instance was granted, so
+> the demo runs the identical command against a local server that speaks the same
+> protocol — a documented deviation.
+>
+> Repository: github.com/muziconsulting-cloud/conquest-designer
+
+**Upload:** unlisted YouTube (or Drive). Then **put the file in the repository** as
+`demo/demo.mp4` — the organiser's own compliance monitor looks for a real video file in
+the repo, and a form URL alone will not satisfy it.
+
+**Export:** H.264 MP4, 1080p, 30fps. Check the file plays before you upload it.
+
+---
+
+## Recording rules
+
+- **One take, but a retake is free.** A shot that breaks is re-shot — the fallback lines
+  above are there so a broken shot never ends up in the file.
+- **Never show a number the pipeline did not produce.** If a panel is empty, say it is empty.
+- **The Zetaris and model-provider lines are spoken, not implied.** The judges will check.
+- **No slides during the demo.** The video is the product. The deck is a separate deliverable.
+- **Do not show the terminal scrolling faster than it can be read.** Cut to the output, let
+  it sit for a beat, then talk.
+- **Under 4 minutes is a rule, not a target.** 3:00 with room to breathe is safer.

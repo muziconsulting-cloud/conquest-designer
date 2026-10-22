@@ -57,7 +57,7 @@ runner asserts both.
 
 ```bash
 HMEM_IMPL=/abs/path/to/src/engines/hmem/index.ts \
-  npx tsx vendor/meterless/hmem/conformance/runner.ts
+  bun vendor/meterless/hmem/conformance/runner.ts
 ```
 
 prints **13/13 passed** and exits **0**. The runner exits `1` on a failed check and `2`

@@ -4,15 +4,16 @@
   "private": true,
   "type": "module",
   "license": "Apache-2.0",
-  "description": "Conquest — the agent exchange. An exchange where autonomous agents are priced, listed and traded, and a swarm does the listing work.",
+  "description": "Conquest \u2014 the agent exchange. An exchange where autonomous agents are priced, listed and traded, and a swarm does the listing work.",
   "engines": {
     "bun": ">=1.1.0"
   },
   "scripts": {
-    "swarm": "bun run src/index.ts",
-    "serve": "bun run src/server.ts",
     "conformance": "bun run scripts/conformance.ts",
+    "engines:fetch": "bun run scripts/fetch-engines.ts",
     "recon": "bun run scripts/recon.ts",
+    "serve": "bun run src/server.ts",
+    "swarm": "bun run src/index.ts",
     "typecheck": "bunx tsc --noEmit"
   },
   "devDependencies": {

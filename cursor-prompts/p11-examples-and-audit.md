@@ -71,6 +71,13 @@ Ask Cursor:
 > variables, inaccurate agent descriptions, and any sponsor integration that is
 > described but not real. Return exact edits.
 
+**`DEMO.md` is a recording script — every command in it is a shot.** A command that
+fails there fails on camera, in front of a judge. Run **every** command in `DEMO.md`:
+the self-listing test, the offline and dead-dependency runs, the conformance suite, the
+Zetaris self-test, and every route the script points a camera at. Then run every command
+in the README and in `DECK.md`'s closing line. Fix the script if it is wrong — a video
+that says to run a command that does not exist is worse than no video.
+
 **Every command in the README must be one that was actually run, in this repo, with
 this code.** Run each one. If a command fails, either fix it or delete it — do not
 leave it in the README hoping.

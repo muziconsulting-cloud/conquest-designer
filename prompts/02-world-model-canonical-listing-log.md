@@ -7,7 +7,7 @@
 My agents run in parallel and drift out of sync. Implement the Meterless World Model in this codebase: read engines/world-model/AGENTS.md at https://github.com/Meterless/Meterless and follow it to add an event-sourced shared state that every agent reads and writes.
 
 You're done when this passes:
-WORLD_MODEL_IMPL=/abs/path/to/your/index.ts npx tsx conformance/runner.ts
+WORLD_MODEL_IMPL=/abs/path/to/your/index.ts bun vendor/meterless/<engine>/conformance/runner.ts
 ```
 
 ## Our binding
@@ -25,7 +25,7 @@ WORLD_MODEL_IMPL=/abs/path/to/your/index.ts npx tsx conformance/runner.ts
 
 ## Stop rule
 
-1. `WORLD_MODEL_IMPL=<abs path to our world model impl> npx tsx conformance/runner.ts` exits `0`.
+1. `WORLD_MODEL_IMPL=<abs path to our world model impl> bun vendor/meterless/<engine>/conformance/runner.ts` exits `0`.
 2. **Re-ingesting the same data produces an empty diff.**
 3. The five disagreeing sources land as distinct observations; a canonical record is
    emitted with **per-field provenance**.

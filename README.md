@@ -63,10 +63,17 @@ Requires **Bun** (for the swarm runtime) and access to the pre-existing product 
 
 ```bash
 bun install
-cp .env.example .env        # fill placeholders; never commit .env
+cp .env.example .env              # fill placeholders; never commit .env
+bun run engines:fetch             # the three Meterless engine specs → vendor/meterless/
 ```
 
 `.env.example` carries **placeholders only**. No secrets are committed; `.env` is gitignored.
+
+`vendor/` is **not** in the repository on purpose — the Meterless engine folders are the
+published contracts and the published conformance suites, fetched at build time. We
+implement from the contract; we do not vendor the reference implementations
+(Apache-2.0, attributed in [`SPONSORS.md`](./SPONSORS.md)). `bun run engines:fetch`
+brings all three down; `bun run conformance` runs their suites against our code.
 
 ## Usage
 
@@ -103,9 +110,10 @@ it is the evidence that the agents collaborated rather than ran in sequence.
 ### The other commands
 
 ```bash
-bun run swarm        # start the listing swarm (Volume Planner → Rec. → Closer ⇄ Critic → Auditor)
-bun run conformance  # run the three Meterless conformance suites against OUR implementations
-bun run recon        # verify the money invariant is balanced (delta 0)
+bun run swarm          # start the listing swarm (Volume Planner → Rec. → Closer ⇄ Critic → Auditor)
+bun run engines:fetch  # fetch the three Meterless engine specs (AGENTS.md contract + suites)
+bun run conformance    # run the three Meterless conformance suites against OUR implementations
+bun run recon          # verify the money invariant is balanced (delta 0)
 ```
 
 **Every command maps to the engine service behind it.** This is the shape Meterless's own
@@ -114,7 +122,7 @@ hackathon starter uses, and it is how the engine-usage line of the rubric gets r
 | Command | What runs behind it | Meterless engine |
 |---|---|---|
 | `bun run swarm` | evidence reconciliation → canonical listing/trade event log → bounded long-run cadence | **H-MEM** · **World Model** · **Markovian** |
-| `bun run conformance` | the three published conformance suites (`npx tsx conformance/runner.ts`) | H-MEM 13/13 · Markovian 8/8 · World Model 8/8 |
+| `bun run conformance` | the three published conformance suites (`bun vendor/meterless/<engine>/conformance/runner.ts`) | H-MEM 13/13 · Markovian 8/8 · World Model 8/8 |
 | `bun run recon` | the pre-existing product's `writeLedger` rail and supply invariant | — (pre-existing product API) |
 
 The swarm writes one JSONL trace per run under `logs/`, so every listing decision is

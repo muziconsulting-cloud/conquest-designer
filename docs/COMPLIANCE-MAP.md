@@ -75,7 +75,7 @@ run Nemotron unless a recorded run names the routing id.**
 
 | Item | Where |
 |---|---|
-| Demo video, 1–4 minutes | `DEMO.md` is the walkthrough; the recording is a Day-5 deliverable. |
-| Slide deck complete | `DECK.md` is the outline; the deck is a Day-5 deliverable. |
+| Demo video, 1–4 minutes | The content is in `DEMO.md` — a timed, word-for-word script with a fallback for every shot. The recording is a Day-5 deliverable, exported to `demo/demo.mp4` **in the repository** (the compliance monitor looks for a real video file, not a form URL) and uploaded unlisted for the form. |
+| Slide deck complete | The content is in `DECK.md` — fourteen slides, on-slide copy, speaker notes, and a visual direction per slide. The deck is exported to `DECK.pdf`. |
 | Sponsor technology explanation written | `SPONSORS.md` and `SUBMISSION.md`. |
 | Pre-existing components declared | `PRE-EXISTING.md`, in full, with the `pre-window-scaffold` tag as the audit trail. |

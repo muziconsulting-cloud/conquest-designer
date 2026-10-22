@@ -41,12 +41,13 @@ are the version of record for the **Oct 22 00:00Z → Oct 27 23:45Z** window.
   - **The provider key never goes near Cursor.** Meterless credit pays for the *product*
     running; Cursor credit pays for *writing the code*.
 - **Why we are confident Bun+TS builds this inside the window** (evidence, not vibes):
-  1. The Meterless conformance toolchain **is TypeScript** (`npx tsx
-     conformance/runner.ts`) — the mandatory sponsor gate forces TS anyway.
-  2. **Verified 2026-10-21 on this machine:** H-MEM **13/13**, Markovian **8/8**,
-     World Model **8/8** — all exit code `0`, all local, **no API keys, no cloud
-     account, no card**. The sponsor's own reference implementations pass their own
-     suites, so the gate is reachable, not theoretical.
+  1. The Meterless conformance toolchain **is TypeScript** — and **Bun runs the runners
+     directly** (`bun vendor/meterless/<engine>/conformance/runner.ts`, no `tsx`, no
+     network, no extra dependency). The mandatory sponsor gate forces TS anyway.
+  2. **Re-verified 2026-10-22, in this repository, with `bun`:** H-MEM **13/13**,
+     Markovian **8/8**, World Model **8/8** — all exit code `0`, all local, **no API keys,
+     no cloud account, no card**. The sponsor's own reference implementations pass their
+     own suites under our exact command, so the gate is reachable, not theoretical.
   3. WardByWard (10k+ lines, this stack) already proves server-HTML rendering,
      raw `fetch` sponsor-style seams, bounded agent loops and JSONL discipline.
   4. Each prompt below has a hard **Done when** gate — nothing drifts.
@@ -69,8 +70,8 @@ The engine's `AGENTS.md` carries the full contract (architecture, service bounda
 data shapes, build order). **Definition of done = the conformance suite is green:**
 
 ```bash
-HMEM_IMPL=<your-build> npx tsx conformance/runner.ts
-WORLD_MODEL_IMPL=<your-build> npx tsx conformance/runner.ts
+HMEM_IMPL=<your-build> bun vendor/meterless/<engine>/conformance/runner.ts
+WORLD_MODEL_IMPL=<your-build> bun vendor/meterless/<engine>/conformance/runner.ts
 ```
 
 Suites exit `0` on pass, `1` on failure, `2` if the implementation cannot be loaded.

@@ -108,9 +108,9 @@ And the submission goes in **hours** before 23:45 UTC on the 27th, not minutes.
 
 ```bash
 bunx tsc --noEmit                                  # exit 0
-npx tsx vendor/meterless/hmem/conformance/runner.ts        # 13/13
-npx tsx vendor/meterless/world-model/conformance/runner.ts  # 8/8
-npx tsx vendor/meterless/markovian/conformance/runner.ts   # 8/8
+bun vendor/meterless/hmem/conformance/runner.ts         # 13/13   (Bun runs it; no tsx)
+bun vendor/meterless/world-model/conformance/runner.ts #  8/8
+bun vendor/meterless/markovian/conformance/runner.ts  #  8/8
 python3 tools/hackathon-compliance/scripts/compliance_check.py   # 0 FAIL
 ```
 

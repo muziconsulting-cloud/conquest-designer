@@ -7,7 +7,7 @@
 Refactor the long-running agent loop in this codebase to use the Meterless Markovian engine. Read engines/markovian/AGENTS.md at https://github.com/Meterless/Meterless and follow it: break the work into bounded chunks with safe carryover, so context stays flat per step.
 
 Measure before and after (see engines/markovian/reference/scripts/measured-run.ts). You're done when this passes:
-MARKOVIAN_IMPL=/abs/path/to/your/index.ts npx tsx conformance/runner.ts
+MARKOVIAN_IMPL=/abs/path/to/your/index.ts bun vendor/meterless/<engine>/conformance/runner.ts
 ```
 
 ## Our binding
@@ -25,7 +25,7 @@ MARKOVIAN_IMPL=/abs/path/to/your/index.ts npx tsx conformance/runner.ts
 
 ## Stop rule
 
-1. `MARKOVIAN_IMPL=<abs path to our markovian impl> npx tsx conformance/runner.ts` exits `0`.
+1. `MARKOVIAN_IMPL=<abs path to our markovian impl> bun vendor/meterless/<engine>/conformance/runner.ts` exits `0`.
 2. **Context stays flat per step** — measured before and after, with the numbers shown.
 3. Every chunk writes a **per-step record** (tokens, latency, outcome) into the run history.
 4. A second run of the same task needs **fewer chunks** than the first.

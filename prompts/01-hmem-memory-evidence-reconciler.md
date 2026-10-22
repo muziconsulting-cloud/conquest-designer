@@ -7,7 +7,7 @@
 Add persistent memory to the agent in this codebase using the Meterless H-MEM spec. Read https://github.com/Meterless/Meterless/tree/main/engines/hmem, starting with its AGENTS.md, and follow it step by step. Use the runnable reference in engines/hmem/reference as your guide.
 
 You are done when the conformance suite passes:
-HMEM_IMPL=/abs/path/to/your/index.ts npx tsx conformance/runner.ts
+HMEM_IMPL=/abs/path/to/your/index.ts bun vendor/meterless/<engine>/conformance/runner.ts
 
 Show me the passing output.
 ```
@@ -27,7 +27,7 @@ Show me the passing output.
 
 ## Stop rule
 
-1. `HMEM_IMPL=<abs path to our hmem impl> npx tsx conformance/runner.ts` exits `0`.
+1. `HMEM_IMPL=<abs path to our hmem impl> bun vendor/meterless/<engine>/conformance/runner.ts` exits `0`.
 2. Every recall **cites memory ids** — no unciteable recall.
 3. A conflict between two disagreeing sources is **scored and recorded with a reason**, not
    silently resolved.
