@@ -15,6 +15,7 @@ import { resolveLlm, checkHealth } from '../engine/registry.ts'
 import { OfflineAdapter } from '../engine/offline.ts'
 import { loadListings, loadSourceRegistry } from '../loading.ts'
 import type { RunRequest } from '../loading.ts'
+import { createEngineSession } from '../engines/session.ts'
 import { runListing } from './loops.ts'
 import type { ListingOutcome } from './loops.ts'
 import { createTraceSink } from './trace.ts'
@@ -143,6 +144,10 @@ export async function runExchange(options: RunOptions): Promise<RunResponse> {
   const trace = options.trace ?? createTraceSink()
   const now = () => new Date().toISOString()
 
+  // One engine session per run: the memory engine, the canonical log and the
+  // long-run engine that the roles work through.
+  const session = createEngineSession({ now })
+
   const outcomes: ListingOutcome[] = []
   for (const listing of selected) {
     try {
@@ -155,6 +160,7 @@ export async function runExchange(options: RunOptions): Promise<RunResponse> {
           providerConfigured,
           trace,
           now,
+          session,
         }),
       )
     } catch (error) {
@@ -202,17 +208,33 @@ export async function runExchange(options: RunOptions): Promise<RunResponse> {
 
   // The route the model seam took this run — recorded in the trace, not in the
   // response contract.
+  const memoryCount = session.index.size
+  const auditCount = session.world.audit().length
+  const eventCount = session.world.events().length
+
   trace.write(
     'telemetry-auditor',
     {
       action: 'audit_telemetry',
       outcome: degraded ? 'fallback' : 'ok',
       input_summary: 'Run finished.',
-      output_summary: `The model route was: ${llmReason}`,
+      output_summary:
+        `The model route was: ${llmReason} ` +
+        `The engines recorded ${memoryCount} memor${memoryCount === 1 ? 'y' : 'ies'}, ` +
+        `${eventCount} canonical event(s) and ${auditCount} audit entr${auditCount === 1 ? 'y' : 'ies'}.`,
       target_agent: null,
       confidence,
     },
-    { llm: resolved.source, health: health.state, reason: llmReason },
+    {
+      llm: resolved.source,
+      health: health.state,
+      reason: llmReason,
+      engine: {
+        hmem: { memories: memoryCount },
+        worldModel: { events: eventCount, auditEntries: auditCount },
+        markovian: { runs: outcomes.length },
+      },
+    },
   )
 
   return {

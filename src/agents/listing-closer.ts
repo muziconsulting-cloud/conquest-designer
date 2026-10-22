@@ -9,11 +9,17 @@
  *
  * The canonical record is content-addressed: the same content always yields the same
  * id, so a record can be referenced without a database.
+ *
+ * The record itself is written to the **World Model** engine (Meterless) — the listing
+ * as an entity, the agent it belongs to as another entity, the relation between them,
+ * and the facts the listing asserts. Every write carries its provenance, the event log
+ * keeps the order, and the audit trail keeps the receipt.
  */
 
 import { createHash } from 'node:crypto'
 import type { Critique, Listing, ListingRecord } from '../types.ts'
 import type { CloseResult, Reconciliation } from './contracts.ts'
+import type { EngineSession } from '../engines/session.ts'
 
 const PRICE_FIELD = 'priceZar'
 const TERM_FIELD = 'termMonths'
@@ -153,5 +159,133 @@ export function toListingRecord(listing: Listing, close: CloseResult, at: string
     provenance: close.provenance,
     contentId: close.contentId,
     recordedAt: at,
+  }
+}
+
+export interface RecordInput {
+  listing: Listing
+  close: CloseResult
+  recon: Reconciliation
+  session: EngineSession
+  at: string
+}
+
+export interface RecordResult {
+  /** The World Model's id for the listing entity. */
+  entityId: string
+  /** The World Model's id for the agent entity. */
+  agentEntityId: string
+  /** The events the writes produced, in order. */
+  eventIds: string[]
+  /** The audit sequence the record ends on. */
+  auditSeq: number
+}
+
+/**
+ * Write the listing into the canonical log.
+ *
+ * The listing is keyed by its content id, so the same listing always lands on the
+ * same entity and re-writing it is a no-op. The agent is keyed by its agent id — an
+ * agentic identity we reference, never one we mint.
+ */
+export async function recordListing(input: RecordInput): Promise<RecordResult> {
+  const { listing, close, recon, session, at } = input
+  const world = session.world
+
+  const source = {
+    kind: 'observed',
+    at,
+    agent: 'listing-closer',
+    listing: listing.listingId,
+  }
+
+  const agent = await world.upsertEntity({
+    type: 'agent',
+    name: listing.agent.displayName,
+    externalKey: { system: 'conquest', id: listing.agent.agentId },
+    attrs: {
+      agentId: listing.agent.agentId,
+      agentKeyHash: listing.agent.agentKeyHash,
+      walletAddress: listing.agent.walletAddress,
+    },
+    source,
+    confidence: 1,
+  })
+
+  const entity = await world.upsertEntity({
+    type: 'listing',
+    name: `${listing.agent.displayName} — R${listing.declaredPriceZar} / ${listing.termMonths} months`,
+    externalKey: { system: 'conquest', id: close.contentId },
+    attrs: {
+      listingId: listing.listingId,
+      contentId: close.contentId,
+      declaredPriceZar: listing.declaredPriceZar,
+      reconciledPriceZar: close.reconciledPriceZar,
+      termMonths: listing.termMonths,
+      status: close.status,
+      declaredBy: listing.declaredBy,
+      provenance: close.provenance,
+    },
+    source,
+    confidence: recon.confidence,
+  })
+
+  await world.relate({
+    from: entity.id,
+    type: 'listed_by',
+    to: agent.id,
+    validFrom: at,
+    source,
+  })
+
+  await world.assertFact({
+    about: entity.id,
+    predicate: 'declared_price_zar',
+    value: listing.declaredPriceZar,
+    source,
+    confidence: 1,
+  })
+
+  await world.assertFact({
+    about: entity.id,
+    predicate: 'reconciled_price_zar',
+    value: close.reconciledPriceZar,
+    source,
+    confidence: recon.confidence,
+  })
+
+  await world.assertFact({
+    about: entity.id,
+    predicate: 'status',
+    value: close.status,
+    source,
+    confidence: 1,
+  })
+
+  // A conflict the critic resolved is part of the canonical record: what disagreed,
+  // and which position won.
+  for (const conflict of recon.conflicts) {
+    await world.assertFact({
+      about: entity.id,
+      predicate: `conflict:${conflict.field}`,
+      value: {
+        positions: conflict.positions,
+        winner: conflict.resolution.winner,
+        why: conflict.resolution.why,
+      },
+      source,
+      confidence: recon.confidence,
+    })
+  }
+
+  const events = world.events()
+  const eventIds = events.slice(-6).map((event) => event.id)
+  const audit = world.audit()
+
+  return {
+    entityId: entity.id,
+    agentEntityId: agent.id,
+    eventIds,
+    auditSeq: audit.length,
   }
 }

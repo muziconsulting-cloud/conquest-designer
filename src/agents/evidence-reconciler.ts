@@ -6,12 +6,16 @@
  * only, so the claim can be contradicted. If the owner were allowed to win the
  * resolution, the pipeline could never hold anything.
  *
- * Resolution per field: the highest-confidence observation wins; ties break on the
- * most recent observation, then on the source id, so the result is deterministic.
+ * The memories live in the **H-MEM** engine (Meterless). The engine stores every
+ * observation, recalls the candidates for a field, and hands back the memory ids the
+ * answer cites. The rule — highest confidence, then the most recent observation, then
+ * the source id — is the exchange's, and it decides; the engine's ranking only
+ * chooses which candidates are worth arguing about.
  */
 
 import type { Conflict, Listing } from '../types.ts'
 import type { Plan, Reconciliation } from './contracts.ts'
+import { recallField, seedListing, type EngineSession } from '../engines/session.ts'
 
 interface Position {
   source: string
@@ -27,7 +31,17 @@ const better = (a: Position, b: Position): boolean => {
   return a.source.localeCompare(b.source) < 0
 }
 
-export function reconcile(listing: Listing, plan: Plan): Reconciliation {
+export interface ReconcileInput {
+  listing: Listing
+  plan: Plan
+  session: EngineSession
+}
+
+export function reconcile({ listing, plan, session }: ReconcileInput): Reconciliation {
+  // Every observation the listing carries becomes a memory. A source that did not
+  // answer has no observation to remember.
+  seedListing(session, listing)
+
   const ownerSources = new Set(
     plan.sources.filter((source) => source.kind === 'owner').map((source) => source.id),
   )
@@ -44,19 +58,19 @@ export function reconcile(listing: Listing, plan: Plan): Reconciliation {
   for (const field of plan.fields) {
     const positions: Position[] = []
 
-    for (const evidence of listing.evidence) {
-      if (evidence.field !== field) continue
-      if (ownerSources.has(evidence.source)) continue
-      if (!independentIds.has(evidence.source)) continue
-      if (plan.unavailable.includes(evidence.source)) continue
-      if (evidence.value === '') continue
+    for (const candidate of recallField(session, listing.listingId, field)) {
+      const { indexed } = candidate
+      if (ownerSources.has(indexed.source)) continue
+      if (!independentIds.has(indexed.source)) continue
+      if (plan.unavailable.includes(indexed.source)) continue
+      if (indexed.value === '') continue
 
       positions.push({
-        source: evidence.source,
-        value: evidence.value,
-        trust: evidence.provenance.confidence,
-        observedAt: evidence.observedAt,
-        memoryIds: evidence.provenance.memoryIds,
+        source: indexed.source,
+        value: indexed.value,
+        trust: indexed.confidence,
+        observedAt: indexed.observedAt,
+        memoryIds: [indexed.memoryId],
       })
     }
 
@@ -73,7 +87,13 @@ export function reconcile(listing: Listing, plan: Plan): Reconciliation {
       .filter((position) => position.value === winner.value)
       .map((position) => position.source)
     winners.push(winner.trust)
-    for (const id of winner.memoryIds) memoryIds.add(id)
+
+    // The citation covers the winning observation and every observation that agreed
+    // with it — those are the memories the answer stands on.
+    for (const position of positions) {
+      if (position.value !== winner.value) continue
+      for (const id of position.memoryIds) memoryIds.add(id)
+    }
 
     const distinct = [...new Set(positions.map((position) => position.value))]
     if (distinct.length > 1) {

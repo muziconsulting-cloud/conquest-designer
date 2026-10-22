@@ -1,6 +1,6 @@
 {
   "request_id": "example-001",
-  "trace_id": "trace-20261022-002",
+  "trace_id": "trace-20261022-001",
   "status": "success",
   "agents_used": [
     "volume-planner",
@@ -24,7 +24,7 @@
         "declared_price_zar": 1440,
         "reconciled_price_zar": 1440,
         "reason": "The reconciled evidence supports the declared price of R1440 (zetaris:ledger), confirmed by 2 independent sources.",
-        "listing_copy": "R1440 for 12 months (evidence: zetaris:registry, zetaris:ledger).",
+        "listing_copy": "R1440 for 12 months (evidence: zetaris:ledger, zetaris:registry).",
         "content_id": "cid-bdce56d2219a47afc0a9d975",
         "revision": null,
         "fallback": false,
@@ -38,5 +38,5 @@
     "revision_count": 0,
     "evaluator_findings": []
   },
-  "log_path": "logs/trace-20261022-002.jsonl"
+  "log_path": "logs/trace-20261022-001.jsonl"
 }

@@ -12,6 +12,7 @@
     "conformance": "bun run scripts/conformance.ts",
     "engines:fetch": "bun run scripts/fetch-engines.ts",
     "recon": "bun run scripts/recon.ts",
+    "determinism": "bun run scripts/determinism.ts",
     "serve": "bun run src/server.ts",
     "swarm": "bun run src/index.ts",
     "typecheck": "bunx tsc --noEmit"

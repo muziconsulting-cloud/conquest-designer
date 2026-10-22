@@ -1,6 +1,6 @@
 {
   "request_id": "example-002",
-  "trace_id": "trace-20261022-003",
+  "trace_id": "trace-20261022-002",
   "status": "success",
   "agents_used": [
     "volume-planner",
@@ -39,5 +39,5 @@
       "The reconciled evidence supports R2880 (zetaris:registry), not the declared R1440. The listing is held, not published."
     ]
   },
-  "log_path": "logs/trace-20261022-003.jsonl"
+  "log_path": "logs/trace-20261022-002.jsonl"
 }

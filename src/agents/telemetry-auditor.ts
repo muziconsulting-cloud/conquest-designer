@@ -9,11 +9,17 @@
  *     seam a model uses. When no provider is configured, the offline adapter renders
  *     the same facts deterministically. The decision itself is never the model's: the
  *     rules decide, the port narrates.
+ *
+ * The decision is also written to the **World Model** engine (Meterless), on the same
+ * canonical listing the closer wrote, so the event log carries the whole story — what
+ * was published, what was held, what escalated — and the audit trail keeps the receipt
+ * for every one of those writes.
  */
 
 import type { LlmPort } from '../llm/port.ts'
 import type { Conflict } from '../types.ts'
 import type { StepTrace } from './contracts.ts'
+import type { EngineSession } from '../engines/session.ts'
 
 export type Decision = 'accept' | 'revise' | 'hold' | 'fallback'
 
@@ -28,11 +34,16 @@ export interface AuditInput {
   escalated: boolean
   unavailable: string[]
   llm: LlmPort
+  /** The canonical listing the decision belongs to. */
+  entityId?: string
+  session?: EngineSession
 }
 
 export interface AuditOutcome {
   narrative: string
   trace: StepTrace
+  /** The events the decision write produced. */
+  eventIds: string[]
 }
 
 export async function auditListing(input: AuditInput): Promise<AuditOutcome> {
@@ -76,6 +87,34 @@ export async function auditListing(input: AuditInput): Promise<AuditOutcome> {
         .join('; ')}.`
     : ''
 
+  // The decision, on the canonical record.
+  const eventIds: string[] = []
+  if (input.session && input.entityId) {
+    const at = input.session.now()
+    await input.session.world.assertFact({
+      about: input.entityId,
+      predicate: 'decision',
+      value: input.decision,
+      source: { kind: 'observed', at, agent: 'telemetry-auditor', listing: input.listingId },
+      confidence: input.confidence,
+    })
+    if (input.escalated) {
+      await input.session.world.assertFact({
+        about: input.entityId,
+        predicate: 'escalation',
+        value: input.conflicts.map((conflict) => ({
+          field: conflict.field,
+          winner: conflict.resolution.winner,
+          why: conflict.resolution.why,
+        })),
+        source: { kind: 'observed', at, agent: 'telemetry-auditor', listing: input.listingId },
+        confidence: input.confidence,
+      })
+    }
+    const events = input.session.world.events()
+    for (const event of events.slice(input.escalated ? -2 : -1)) eventIds.push(event.id)
+  }
+
   return {
     narrative,
     trace: {
@@ -86,5 +125,6 @@ export async function auditListing(input: AuditInput): Promise<AuditOutcome> {
       target_agent: null,
       confidence: input.confidence,
     },
+    eventIds,
   }
 }

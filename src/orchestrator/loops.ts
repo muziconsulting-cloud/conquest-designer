@@ -8,6 +8,10 @@
  *
  * Every step writes one trace line. No step throws out of this module: a failure in a
  * dependency degrades the decision, it does not end the run.
+ *
+ * The three engines run underneath the loops — Markovian expands the plan, H-MEM holds
+ * and teaches the evidence, the World Model keeps the canonical record. Every step that
+ * touches an engine says so in its trace detail, with the ids it touched.
  */
 
 import type { Conflict, Critique, Listing, ListingRecord, ListingStatus } from '../types.ts'
@@ -19,9 +23,12 @@ import {
   critiqueListing,
   proposeListing,
   closeListing,
+  recordListing,
   auditListing,
 } from '../agents/index.ts'
 import type { Decision } from '../agents/telemetry-auditor.ts'
+import type { MemoryFeedback } from '../agents/conflict-critic.ts'
+import type { EngineSession } from '../engines/session.ts'
 import { escalate } from './escalation.ts'
 import { applyFallback } from './fallback.ts'
 import type { TraceSink } from './trace.ts'
@@ -42,9 +49,17 @@ export interface ListingOutcome {
   revision: { field: string; from: string; to: string } | null
   fallback: boolean
   escalated: boolean
-  critique: Critique | null
+  critique: Critique
   conflicts: Conflict[]
   record: ListingRecord
+  /** What the engines did for this listing. */
+  engines: {
+    markovian: { runId: string; chunks: number; tokensUsed: number; tokensSaved: number }
+    memoryIds: string[]
+    feedback: MemoryFeedback[]
+    entityId: string
+    eventIds: string[]
+  }
 }
 
 export interface ListingRunInput {
@@ -55,15 +70,16 @@ export interface ListingRunInput {
   providerConfigured: boolean
   trace: TraceSink
   now: () => string
+  session: EngineSession
 }
 
 const plural = (count: number, word: string): string => `${count} ${word}${count === 1 ? '' : 's'}`
 
 export async function runListing(input: ListingRunInput): Promise<ListingOutcome> {
-  const { listing, registry, llm, llmHealth, providerConfigured, trace, now } = input
+  const { listing, registry, llm, llmHealth, providerConfigured, trace, now, session } = input
 
   // ---- Loop 1: plan, gather, propose -------------------------------------
-  const { plan, queries } = planSources({ listing, registry })
+  const { plan, queries, engine: markovian } = await planSources({ listing, registry, session })
 
   trace.write(
     'volume-planner',
@@ -75,11 +91,26 @@ export async function runListing(input: ListingRunInput): Promise<ListingOutcome
         `for ${listing.termMonths} months; fields: ${plan.fields.join(', ')}.`,
       output_summary:
         `Pulling ${plan.answered.length} independent source(s): ${plan.answered.join(', ') || 'none'}.` +
-        (plan.unavailable.length > 0 ? ` ${plan.unavailable.join(', ')} did not answer.` : ''),
+        (plan.unavailable.length > 0 ? ` ${plan.unavailable.join(', ')} did not answer.` : '') +
+        ` Expanded into ${plan.buckets.length} evidence bucket(s) over ${markovian.chunks} chunk(s).`,
       target_agent: 'evidence-reconciler',
       confidence: null,
     },
-    { listingId: listing.listingId, fields: plan.fields, sources: plan.sources.map((s) => s.id) },
+    {
+      listingId: listing.listingId,
+      fields: plan.fields,
+      sources: plan.sources.map((s) => s.id),
+      buckets: plan.buckets,
+      engine: {
+        name: 'markovian',
+        runId: markovian.runId,
+        chunks: markovian.chunks,
+        tokensUsed: markovian.tokensUsed,
+        tokensSaved: markovian.tokensSaved,
+        efficiencyPercent: markovian.efficiencyPercent,
+        tokenLabel: markovian.tokenLabel,
+      },
+    },
   )
 
   for (const query of queries) {
@@ -99,7 +130,7 @@ export async function runListing(input: ListingRunInput): Promise<ListingOutcome
     )
   }
 
-  const recon = reconcile(listing, plan)
+  const recon = reconcile({ listing, plan, session })
   const fallbackState = applyFallback(plan, llmHealth, providerConfigured)
 
   trace.write(
@@ -128,6 +159,7 @@ export async function runListing(input: ListingRunInput): Promise<ListingOutcome
       corroborated: recon.corroborated,
       conflicts: recon.conflicts,
       memoryIds: recon.memoryIds,
+      engine: { name: 'hmem', memoryIds: recon.memoryIds },
     },
   )
 
@@ -146,7 +178,7 @@ export async function runListing(input: ListingRunInput): Promise<ListingOutcome
   )
 
   // ---- Loop 2: challenge, and answer the challenge ------------------------
-  const critique = critiqueListing(listing, recon)
+  const { critique, feedback } = critiqueListing({ listing, recon, session })
   const challenged = critique.verdict !== 'accept'
 
   trace.write(
@@ -164,6 +196,7 @@ export async function runListing(input: ListingRunInput): Promise<ListingOutcome
       verdict: critique.verdict,
       conflicts: critique.conflicts,
       supportingMemoryIds: critique.supportingMemoryIds,
+      engine: { name: 'hmem', feedback },
     },
   )
 
@@ -203,6 +236,15 @@ export async function runListing(input: ListingRunInput): Promise<ListingOutcome
         ? 'fallback'
         : 'accept'
 
+  // The canonical record, on the World Model.
+  const record = await recordListing({
+    listing,
+    close,
+    recon,
+    session,
+    at: now(),
+  })
+
   trace.write(
     'listing-closer',
     {
@@ -220,6 +262,13 @@ export async function runListing(input: ListingRunInput): Promise<ListingOutcome
       decision,
       contentId: close.contentId,
       fallbackReasons: fallbackState.reasons,
+      engine: {
+        name: 'world-model',
+        entityId: record.entityId,
+        agentEntityId: record.agentEntityId,
+        eventIds: record.eventIds,
+        auditSeq: record.auditSeq,
+      },
     },
   )
 
@@ -233,6 +282,8 @@ export async function runListing(input: ListingRunInput): Promise<ListingOutcome
     escalated,
     unavailable: plan.unavailable,
     llm,
+    entityId: record.entityId,
+    session,
   })
 
   trace.write('telemetry-auditor', audit.trace, {
@@ -240,9 +291,10 @@ export async function runListing(input: ListingRunInput): Promise<ListingOutcome
     decision,
     escalated,
     escalation: escalationNote,
+    engine: { name: 'world-model', entityId: record.entityId, eventIds: audit.eventIds },
   })
 
-  const record: ListingRecord = {
+  const listingRecord: ListingRecord = {
     listingId: listing.listingId,
     agent: listing.agent,
     declaredPriceZar: listing.declaredPriceZar,
@@ -270,7 +322,19 @@ export async function runListing(input: ListingRunInput): Promise<ListingOutcome
     escalated,
     critique,
     conflicts: recon.conflicts,
-    record,
+    record: listingRecord,
+    engines: {
+      markovian: {
+        runId: markovian.runId,
+        chunks: markovian.chunks,
+        tokensUsed: markovian.tokensUsed,
+        tokensSaved: markovian.tokensSaved,
+      },
+      memoryIds: recon.memoryIds,
+      feedback,
+      entityId: record.entityId,
+      eventIds: record.eventIds,
+    },
   }
 }
 

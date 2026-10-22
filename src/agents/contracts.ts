@@ -29,6 +29,8 @@ export interface Plan {
   unavailable: string[]
   /** The sources that answered, in pull order. */
   answered: string[]
+  /** The evidence buckets the expansion produced — one per field per source. */
+  buckets: string[]
 }
 
 /** What the reconciler concluded, with the citation for every field. */

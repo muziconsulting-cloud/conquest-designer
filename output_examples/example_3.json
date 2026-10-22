@@ -1,6 +1,6 @@
 {
   "request_id": "example-003",
-  "trace_id": "trace-20261022-004",
+  "trace_id": "trace-20261022-003",
   "status": "degraded",
   "agents_used": [
     "volume-planner",
@@ -39,5 +39,5 @@
       "Published on degraded evidence: LST-0004 was closed on the source(s) that answered, without the source(s) that did not."
     ]
   },
-  "log_path": "logs/trace-20261022-004.jsonl"
+  "log_path": "logs/trace-20261022-003.jsonl"
 }
