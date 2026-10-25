@@ -9,13 +9,14 @@
 
 import { readFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
-import { fileURLToPath } from 'node:url'
-import { dirname, join } from 'node:path'
+import { join } from 'node:path'
 import type { ContentId, Evidence, Listing, MemoryId, ObservationId } from './types.ts'
 import type { SourceDescriptor } from './agents/contracts.ts'
+import { bindAgentToBook } from './agents/book.ts'
+import { ROOT } from './root.ts'
 
-/** The repo root — every relative path in the app resolves from here. */
-export const ROOT = dirname(dirname(fileURLToPath(import.meta.url)))
+/** The repo root — re-exported so every existing importer keeps resolving it here. */
+export { ROOT }
 
 const readJson = (relative: string): unknown =>
   JSON.parse(readFileSync(join(ROOT, relative), 'utf8')) as unknown
@@ -95,10 +96,16 @@ export function toListing(flat: FlatListing): Listing {
  * The flat shape is what the SQL tables are projected from (see
  * `src/zetaris/tables.ts`), so the pull over the Zetaris protocol and the file
  * loader carry exactly the same data.
+ *
+ * **Every agent is bound to the book on the way out.** The sample data names the
+ * agent; the book says what the agent *is* — the account number it was issued,
+ * the key hash, the address of record. The sample file is not edited to say so:
+ * the binding happens here, in the loader, so every path into the pipeline carries
+ * the same identity.
  */
 export function loadFlatListings(): FlatListing[] {
   const raw = readJson('fixtures/listing-set.json') as FlatListingSet
-  return raw.listings
+  return raw.listings.map((flat) => ({ ...flat, agent: bindAgentToBook(flat.agent) }))
 }
 
 /** The four sample listings, in fixture order. */

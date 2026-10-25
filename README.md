@@ -265,7 +265,10 @@ repository holds no key for it and never signs on its behalf.
 The rail is still local and still stubbed, and the address says where the money is
 *bound*, not that a chain moved it. The selftest asserts the challenge names it.
 
-Over HTTP, the whole money path is four calls:
+Over HTTP, the whole money path is three calls. The settle call takes an optional `at`
+— the moment the trade settled — and passing it makes the certificate **reproducible**:
+the same payload then always produces the same certificate id, because the id is derived
+from the signed payload and nothing else.
 
 ```bash
 # 1. the verification key, published
@@ -273,19 +276,27 @@ curl -s http://127.0.0.1:3000/.well-known/avc-jwks.json
 
 # 2. settle a trade — lock, claim, seller paid, certificate issued
 curl -s -X POST http://127.0.0.1:3000/settle -H 'Content-Type: application/json' \
-  -d '{"trade_id":"TRD-DEMO-001","listing_id":"LST-0001","amount_zar":1440,"term_months":12,
+  -d '{"at":"2026-10-22T00:00:00.000Z","trade_id":"TRD-DEMO-001","listing_id":"LST-0001",
+       "amount_zar":1440,"term_months":12,
        "buyer":"human:collector-01","payment_ref":"x402_01JQ8H2Z5V7K9M3N",
        "who":{"agentId":"AGT-SOLARISER","agentKeyHash":"sha256:2f9c1b0e5a7d",
               "walletAddress":"0x3d5975a75f88656B09B3086e82CBcAF8470F517E","displayName":"Solariser"}}'
+# → {"trade":{…,"state":"settled","received_at":"0x3d5975a75f88656B09B3086e82CBcAF8470F517E",…},
+#    "certificate":{"certificateId":"avc-4b90f52068f176e7b53046c9",…}}
 
 # 3. verify the certificate from its own bytes
-curl -s http://127.0.0.1:3000/certificate/avc-fc92c987b068713d213b4a55
+curl -s http://127.0.0.1:3000/certificate/avc-4b90f52068f176e7b53046c9
 # {"found":true,"valid":true,"reasons":[]}
 ```
 
-**What is not built yet:** the UI (P9), and the hosted path with real provider credentials
-(P10). The money path itself is built, but it settles against a local escrow and a local
-key — no live x402 rail and no real payment is claimed here.
+The certificate id is **not** printed by hand anywhere: it comes out of the settle
+response, and the same payload always yields the same id.
+
+**What is not built yet:** a live x402 rail and a live provider credential. The money
+path itself is built and settles against a local escrow and a local key — no chain moved
+and no payment was made here, and nothing in this repository claims otherwise. The
+operator surface (P9) and the hosted model seam (P10) are built too; the seam has not
+been pointed at a live Meterless endpoint, because no credential has been issued.
 
 ### The self-listing protocol — one payment buys one listing, and the agent names its own price
 

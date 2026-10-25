@@ -196,6 +196,8 @@ cursor-prompts/           11 scoped Cursor prompts + README + RUNBOOK
 fixtures/listing-set.json the four fixture paths: accept / revise / hold / fallback
 evidence/                 the build evidence, published
 docs/                     AVC-SPEC, BUILD-LEDGER, COMPLIANCE-MAP, docs/README
+docs/DEPLOYMENT.md        THE deployment record: URL decision, artifacts, plan, rollback, resume
+docs/PRODUCTION-BUILD-PLAN.md  the public/private cut + audit + flight map
 input_examples/           three request files, three different paths
 output_examples/          three REAL responses, captured from runs
 data/                     the sample source records the offline adapter reads
@@ -278,3 +280,24 @@ and the regeneration of the real `DECK.md` and `DEMO.md`.
 [`docs/COMPLIANCE-MAP.md`](./docs/COMPLIANCE-MAP.md) — including the four declared
 deviations (Bun instead of Python, no Dockerfile, the Zetaris local protocol-compatible
 server, and the build layer) and the reason for each.
+
+## 12 · Deployment (read before touching any box)
+
+The production venue lives on the **WardByWard OCI box** (`ssh wardbyward`) as its own PM2 app
+on `127.0.0.1:3500`, behind its own nginx site file, at **`https://conquestdesigner.com`**
+(zone already on Cloudflare, already pointing at the box). No redirect, no subdomain, no new
+nginx instance, no container, no build step. SSL mode is **Full** until a free Origin CA cert
+for the domain replaces the reused WardByWard origin cert.
+
+**Hard rules:**
+- `/home/wardair/thegearmerchant/**` may be edited **only with full code-reality context**
+  (read the route table, the page module, `Shared.ts` `publicShell`, `Design.ts`, and the DB
+  pattern first) and only to extend the existing rail. `/etc/nginx/sites-available/wardbyward`
+  is read-only; `deploy/deploy-conquest.sh` hash-guards it and aborts on drift.
+- `src/design.ts` is a **verbatim copy** of WardByWard's `src/Design.ts`. Never re-declare
+  tokens, `.card` or `.btn` anywhere else.
+- `/home/ubuntu/conquest/.env` (0600) holds the AVC keys and is **never** synced from a laptop.
+- The only deploy path is `./deploy/deploy-conquest.sh [--nginx|--rollback|--dry-run]`.
+- The deployed artifact is the **public build** with `SAMPLE_MODE=true`. It is not the private
+  physics; never claim otherwise on the site or in the deck.
+- Full detail, failure signatures and the resume protocol: **`docs/DEPLOYMENT.md`**.

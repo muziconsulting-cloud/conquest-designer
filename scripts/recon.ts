@@ -1,10 +1,11 @@
 /**
  * The listing-side reconciliation check.
  *
- * HONEST SCOPE: the money invariant — the 40.492T TIME equilibrium — is not in this
- * step. There is no money path in the listing swarm: no cash moves, no escrow settles,
- * no certificate is issued here. That lands with the settlement work (P7/P8). This
- * script checks the invariant that DOES exist yet:
+ * HONEST SCOPE: this script checks the **listing-side** invariant. The money path
+ * lives elsewhere: the escrow settles and the certificate is issued by the settlement
+ * work (P7/P8), and its own invariant is proved by `bun run avc:selftest` — the
+ * certificate verifies from its own bytes. No cash moves here, and this script does
+ * not claim to check it. It checks the invariants that exist in the listing swarm:
  *
  *  1. Nothing is published that the evidence does not support.
  *  2. Every published listing carries the provenance of the source that decided it.
@@ -78,7 +79,7 @@ async function main(): Promise<number> {
   }
 
   console.log('recon — the listing-side invariant')
-  console.log('  money invariant: not in scope yet (no cash path in the listing swarm; P7/P8)')
+  console.log('  money path: out of scope here — escrow settlement and the certificate are proved by `bun run avc:selftest`')
   console.log('')
   console.log(`listings checked : ${first.result.findings.length} of ${listings.length}`)
   console.log(`published        : ${first.result.findings.filter((f) => f.status === 'published').length}`)
