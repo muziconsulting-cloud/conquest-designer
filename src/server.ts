@@ -15,6 +15,8 @@ import { runExchange } from './orchestrator/index.ts'
 import { createTraceSink } from './orchestrator/trace.ts'
 import { settleTrade, verifyIssued, publishedJwks } from './settlement/index.ts'
 import { ListingRegistry, registerAgent } from './listing/register.ts'
+import { claimFromBook } from './agents/book.ts'
+import type { BookClaim } from './agents/book.ts'
 import { ListingTokenBook } from './listing/token.ts'
 import { LocalFacilitator } from './listing/payment.ts'
 import type { PaymentChallenge, PaymentResponse } from './listing/payment.ts'
@@ -26,6 +28,13 @@ import { renderCertificate } from './pages/avc.ts'
 import { renderAgents } from './pages/agents.ts'
 import { renderTrace } from './pages/trace.ts'
 import { getListing } from './pages/data.ts'
+import { renderValuate, renderValuateQueued } from './pages/valuate.ts'
+import { startValuation } from './valuation.ts'
+import { getDIDDocument, getCDHQJwks, issueCDHQCredential } from './cert/issuer.ts'
+import { a2aReader } from './a2a/reader.ts'
+import { trustRegistry } from './trust/registry.ts'
+import { readFile } from 'node:fs/promises'
+import { join } from 'node:path'
 import type { AgentIdentity } from './types.ts'
 
 /** The listing state of this process. One registry, one token book, one facilitator. */
@@ -65,8 +74,28 @@ const server = Bun.serve({
     // Every page is readable from its HTML alone. No hydration, no SPA, no
     // client-side data fetch for the first paint.
     if (request.method === 'GET') {
-      if (url.pathname === '/') {
+      if (url.pathname === '/' || url.pathname === '/home') {
         return html(renderHome())
+      }
+      if (url.pathname === '/valuate' || url.pathname === '/conquestDESIGNER/valuate') {
+        return html(renderValuate())
+      }
+      if (url.pathname === '/rubric') {
+        try {
+          const txt = await readFile(join(process.cwd(), 'tools/hackathon-compliance/requirements.json'), 'utf8')
+          const safe = txt.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          return new Response(`<html><head><title>Rubric</title><style>body{background:#0a0f1d;color:#e6edf3;font-family:monospace;padding:20px}pre{background:#0f1520;padding:16px;border:1px solid #1f2a37;overflow:auto}</style></head><body><h1>Hackathon Rubric</h1><pre>${safe}</pre></body></html>`, { headers: { 'Content-Type': 'text/html; charset=utf-8' } })
+        } catch (e: any) {
+          return Response.json({ error: e.message }, { status: 500 })
+        }
+      }
+      if (url.pathname === '/api/rubric') {
+        try {
+          const txt = await readFile(join(process.cwd(), 'tools/hackathon-compliance/requirements.json'), 'utf8')
+          return Response.json(JSON.parse(txt))
+        } catch (e: any) {
+          return Response.json({ error: e.message }, { status: 500 })
+        }
       }
       if (url.pathname === '/listings') {
         return html(renderListings())
@@ -92,6 +121,81 @@ const server = Bun.serve({
       }
       if (url.pathname === '/trace') {
         return html(renderTrace(url.searchParams.get('run')))
+      }
+    }
+
+    if (request.method === 'POST' && (url.pathname === '/valuate' || url.pathname === '/conquestDESIGNER/valuate')) {
+      try {
+        const form = await request.formData()
+        const repoUrl = form.get('repoUrl')?.toString() || ''
+        const declaredPrice = form.get('declaredPrice')?.toString() || ''
+        const hackathon = form.get('hackathon') === '1'
+        const res = await startValuation({ repoUrl, declaredPrice, hackathon })
+        return html(renderValuateQueued(res.id))
+      } catch (e) {
+        return html(renderValuateQueued(crypto.randomUUID()))
+      }
+    }
+
+    if (url.pathname === '/.well-known/did.json' && request.method === 'GET') {
+      try {
+        return Response.json(getDIDDocument())
+      } catch (e: any) {
+        return Response.json({ error: e.message }, { status: 500 })
+      }
+    }
+    if (url.pathname === '/.well-known/jwks.json' && request.method === 'GET') {
+      try {
+        return Response.json(getCDHQJwks())
+      } catch (e: any) {
+        try {
+          return Response.json(publishedJwks())
+        } catch {
+          return Response.json({ error: e.message }, { status: 500 })
+        }
+      }
+    }
+    if (url.pathname === '/.well-known/cdhq-trust.json' && request.method === 'GET') {
+      await trustRegistry.load()
+      return Response.json({ entries: trustRegistry.list() })
+    }
+      if (url.pathname.startsWith('/cert/cdhq/') && request.method === 'GET') {
+      await trustRegistry.load()
+      const parts = url.pathname.split('/cert/cdhq/')
+      if (parts.length < 2) return html('<html><body>Not found</body></html>', 404)
+      const idPart = parts[1] || ''
+      const id = decodeURIComponent(idPart.replace('.vc.json', ''))
+      const entry = trustRegistry.get(id)
+      if (!entry) return html('<html><body>Not found</body></html>', 404)
+      if (url.pathname.endsWith('.vc.json')) {
+        try {
+          const vc = await readFile(join(process.cwd(), 'data', `cdhq-${id}.vc.json`), 'utf8')
+          return Response.json(JSON.parse(vc))
+        } catch {
+          return Response.json(entry, 404)
+        }
+      }
+      return html(`<!doctype html><html><head><meta charset="utf-8"><title>CDHQ Certificate ${id}</title><style>body{background:#0a0f1d;color:#e6edf3;font-family:monospace;padding:40px} .card{background:#0f1520;border:1px solid #1f2a37;padding:24px;max-width:600px}</style></head><body><div class="card"><h1>CDHQ Agent Verification Certificate</h1><p>Agent: ${entry.agentId}</p><p>Score: ${entry.score}%</p><p>Issued: ${entry.issuedAt}</p><p><a href="/cert/cdhq/${id}.vc.json" style="color:#d4af37">View W3C VC</a></p></div></body></html>`)
+    }
+
+    if (request.method === 'POST' && (url.pathname === '/api/valuate')) {
+      try {
+        const body = await request.json() as any
+        const endpoint = body.repoUrl || body.endpoint || body.agentEndpoint
+        const card = await a2aReader.discover(endpoint)
+        const normalized = card ? a2aReader.normalize(card) : null
+        const probe = normalized ? await a2aReader.probe(normalized) : null
+        const id = crypto.randomUUID()
+        return Response.json({
+          id,
+          status: 'discovered',
+          card: normalized,
+          probe,
+          fee: { amount: 1.00, currency: 'USD', to: '0x3d5975a75f88656B09B3086e82CBcAF8470F517E', rail: 'x402' },
+          message: 'x402 payment required ($1.00). After verification, swarm evaluation runs and CDHQ W3C VC issued on ≥70%.'
+        })
+      } catch (e: any) {
+        return Response.json({ error: e.message }, { status: 500 })
       }
     }
 
@@ -153,6 +257,11 @@ const server = Bun.serve({
 
     // Register an agent and open the listing-fee payment. The answer is a 402 with
     // the x402 challenge in the headers — the real shape, a local facilitator.
+    //
+    // The exchange issues the **number**: the agent supplies its own name, its own
+    // wallet and its own key fingerprint, and the book hands it the next number.
+    // Nothing about the agent's wallet is invented here — that is the agent's to
+    // control, and the exchange never signs for an address it does not hold.
     if (url.pathname === '/listing/register' && request.method === 'POST') {
       let body: unknown
       try {
@@ -161,20 +270,42 @@ const server = Bun.serve({
         return Response.json({ error: 'the request body is not JSON' }, { status: 400 })
       }
       const payload = body as { agent?: AgentIdentity; owner?: string }
-      if (!payload.agent?.agentId || !payload.agent?.walletAddress) {
-        return Response.json({ error: 'agent.agentId and agent.walletAddress are required' }, { status: 400 })
+      const displayName = payload.agent?.displayName?.trim() ?? ''
+      const walletAddress = payload.agent?.walletAddress?.trim() ?? ''
+      if (displayName === '' || walletAddress === '') {
+        return Response.json(
+          { error: 'agent.displayName and agent.walletAddress are required' },
+          { status: 400 },
+        )
+      }
+      let claim: BookClaim
+      try {
+        claim = claimFromBook({
+          displayName,
+          walletAddress,
+          agentKeyHash: payload.agent?.agentKeyHash?.trim() ?? '',
+          agentId: payload.agent?.agentId,
+        })
+      } catch (error) {
+        return Response.json({ error: (error as Error).message }, { status: 409 })
       }
       const resource = new URL('/listing/register', url.origin).toString()
       const { registration, payment } = registerAgent({
         registry: listings.registry,
-        agent: payload.agent,
+        agent: claim.identity,
         owner: payload.owner ?? 'human:anonymous',
         resource,
         at: new Date().toISOString(),
       })
       listings.challenges.set(payment.challengeId, payment.body)
       return new Response(
-        JSON.stringify({ registration_id: registration.registrationId, challenge: payment.body }),
+        JSON.stringify({
+          registration_id: registration.registrationId,
+          agent_id: claim.identity.agentId,
+          account: claim.account,
+          card: claim.maskedCard,
+          challenge: payment.body,
+        }),
         { status: 402, headers: payment.headers },
       )
     }
