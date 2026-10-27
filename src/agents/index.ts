@@ -1,14 +1,12 @@
-/**
- * The five roles, one export each. The orchestrator imports them from here.
- */
+// 🎓 New University & Millionaire Identity Engines
+export * from "./identity_engine";
+export * from "./premint_book";
 
-export { planSources } from './volume-planner.ts'
-export { reconcile } from './evidence-reconciler.ts'
-export { critiqueListing } from './conflict-critic.ts'
-export { proposeListing, closeListing, toListingRecord, recordListing } from './listing-closer.ts'
-export { auditListing } from './telemetry-auditor.ts'
-export type { AuditOutcome, Decision } from './telemetry-auditor.ts'
-export type { PlanResult } from './volume-planner.ts'
-export type { CritiqueResult, MemoryFeedback } from './conflict-critic.ts'
-export type { RecordResult } from './listing-closer.ts'
-export type { Plan, Reconciliation, StepTrace, CloseResult } from './contracts.ts'
+// 🏛️ Pre-existing Exchange Swarm Modules
+export * from "./book";
+export * from "./contracts";
+export * from "./volume-planner";
+export * from "./evidence-reconciler";
+export * from "./listing-closer";
+export * from "./conflict-critic";
+export * from "./telemetry-auditor";
