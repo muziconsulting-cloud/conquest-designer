@@ -1,8 +1,22 @@
 #!/usr/bin/env bun
 import { spawn } from "bun";
 interface NativeSkill { name: string; description: string; handler: () => Promise<void>; }
-const NATIVE_SKILLS: Record<string, NativeSkill> = { "git-status": { name: "git-status", description: "Check working directory git status", handler: async () => { const proc = spawn(["git", "status"], { stdout: "inherit", stderr: "inherit" }); await proc.exited; } } };
-async function callBunApiGateway(prompt: string) { const gatewayUrl = process.env.CONQUEST_GATEWAY_URL || "http://localhost:3000/v1/execute"; const nodeKey = process.env.CONQUEST_NODE_KEY || "cd-local-key"; const response = await fetch(gatewayUrl, { method: "POST", headers: { "Content-Type": "application/json", "X-Conquest-Key": nodeKey }, body: JSON.stringify({ prompt }) }); if (!response.ok) throw new Error("Gateway Error: " + await response.text()); const data = await response.json(); return { type: data.type || "shell", command: data.command || "" }; }
-async function executePayload(payload: { type?: string; command: string }) { console.log("\n🤖 Proposed Command [" + (payload.type || "shell") + "]: \x1b[33m" + payload.command + "\x1b[0m"); if (!process.argv.includes("-y") && !process.argv.includes("--yes")) { const answer = prompt("❓ Execute command? [Y/n]: "); const cleaned = (answer || "y").trim().toLowerCase(); if (cleaned !== "" && cleaned !== "y" && cleaned !== "yes") { console.log("🛑 Execution aborted by user."); return; } } console.log("\n🚀 [Execution Engine] Running command...\n"); const proc = spawn(["bash", "-c", payload.command], { stdout: "inherit", stderr: "inherit" }); await proc.exited; }
-async function main() { const cleanArgs = process.argv.slice(2).filter(a => a !== "-y" && a !== "--yes"); const promptText = cleanArgs.join(" "); if (!promptText) { console.log("⚡ CONQUEST CLI AGENT HARNESS (CDU Engine)\nUsage: conquest '<task>' [-y]"); process.exit(0); } console.log("\n⚡ [conquest] Processing Intent: \"" + promptText + "\""); const matched = Object.keys(NATIVE_SKILLS).find(k => promptText.toLowerCase().includes(k)); if (matched) { console.log("⚡ [Deterministic Core] Executing native skill: '" + matched + "'\n"); await NATIVE_SKILLS[matched].handler(); return; } try { const payload = await callBunApiGateway(promptText); if (!payload.command) return console.log("❌ Gateway returned an empty command."); await executePayload(payload); } catch (error: any) { console.error("❌ Gateway Error: " + error.message); } }
+const NATIVE_SKILLS: Record<string, NativeSkill> = {
+  "git-status": { name: "git-status", description: "Check git status", handler: async () => { const p = spawn(["git", "status"], { stdout: "inherit" }); await p.exited; } },
+  "list-files": { name: "list-files", description: "List files", handler: async () => { const p = spawn(["ls", "-la"], { stdout: "inherit" }); await p.exited; } },
+  "test-competency": { name: "test-competency", description: "Test V8 competency execution", handler: async () => {
+    const res = await fetch("http://localhost:3000/execute-competency", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ agentId: "01", competencyId: "competency:mit_101", payload: { voltage: 12, resistance: 4 } })
+    });
+    console.log("📊 Result:", JSON.stringify(await res.json(), null, 2));
+  }}
+};
+async function main() {
+  const intent = process.argv.slice(2).join(" ");
+  if (!intent) { console.log("⚡ CDU Harness Active. Usage: bun ./conquest.ts '<skill>'"); return; }
+  const skill = Object.keys(NATIVE_SKILLS).find(k => intent.toLowerCase().includes(k));
+  if (skill) { await NATIVE_SKILLS[skill].handler(); return; }
+  console.log("❌ Unknown skill.");
+}
 main();

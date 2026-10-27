@@ -1,50 +1,21 @@
+import { CDUCompetencyEngine } from "./src/competency_engine";
+const engine = new CDUCompetencyEngine();
+engine.init().catch(err => console.warn("⚠️ SurrealDB pending: " + err.message));
 Bun.serve({
   port: 3000,
   async fetch(req) {
     const url = new URL(req.url);
-
-    if (url.pathname === "/health") {
-      return Response.json({ status: "healthy", engine: "CDU Gateway" });
-    }
-
-    if (url.pathname === "/v1/execute" && req.method === "POST") {
-      const apiKey = req.headers.get("x-conquest-key");
-      
-      if (!apiKey || apiKey !== (process.env.CONQUEST_NODE_KEY || "cd-local-key")) {
-        return Response.json({ error: "Unauthorized node key" }, { status: 401 });
-      }
-
+    if (url.pathname === "/health") return Response.json({ status: "healthy", engine: "CDU Gateway" });
+    if (url.pathname === "/execute-competency" && req.method === "POST") {
       try {
-        const body = await req.json();
-        const prompt = (body.prompt || "").toLowerCase();
-
-        console.log(`🔌 [Gateway] Processing: "${prompt}"`);
-
-        if (prompt.includes("run ts") || prompt.includes("execute script")) {
-          return Response.json({
-            type: "ts",
-            command: "bun run ./src/index.ts"
-          });
-        }
-
-        if (prompt.includes("list files")) {
-          return Response.json({
-            type: "shell",
-            command: "ls -la"
-          });
-        }
-
-        return Response.json({
-          type: "shell",
-          command: `echo "Executed prompt via Gateway: ${prompt}"`
-        });
+        const { agentId, competencyId, payload } = await req.json();
+        const result = await engine.runAgentCompetency(agentId, competencyId, payload);
+        return Response.json(result);
       } catch (err: any) {
-        return Response.json({ error: err.message }, { status: 400 });
+        return Response.json({ success: false, error: err.message }, { status: 500 });
       }
     }
-
     return new Response("Not Found", { status: 404 });
   },
 });
-
 console.log("🚀 [CDU Gateway] Running on http://localhost:3000");
