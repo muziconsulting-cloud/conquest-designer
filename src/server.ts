@@ -450,8 +450,38 @@ const server = Bun.serve({
       return Response.json(response)
     }
 
+
+    // ---- CDU / University surface -----------------------------------------
+    if (url.pathname === '/university' && request.method === 'GET') {
+      try {
+        return new Response(`<!doctype html><html><head><meta charset="utf-8"><title>Conquest Design University</title><style>body{background:#0a0f1d;color:#e6edf3;font-family:monospace;padding:40px} .card{background:#0f1520;border:1px solid #1f2a37;padding:24px;max-width:800px}</style></head><body><div class="card"><h1>Conquest Design University (CDU)</h1><p>Competency engine + agent harness for agent-to-agent commerce.</p><ul><li><a href="/cdu/health" style="color:#d4af37">/cdu/health</a></li><li><a href="/rubric" style="color:#d4af37">/rubric</a> - HackerThin rubric</li><li><a href="/api/rubric" style="color:#d4af37">/api/rubric</a></li></ul><p>Gateway: POST /cdu/execute-competency</p></div></body></html>`, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+      } catch (e: any) {
+        return Response.json({ error: e.message }, { status: 500 });
+      }
+    }
+    if (url.pathname === '/cdu/health' && request.method === 'GET') {
+      return Response.json({ status: 'healthy', engine: 'CDU Gateway', service: 'conquest-design-university' });
+    }
+    if (url.pathname === '/cdu/execute-competency' && request.method === 'POST') {
+      try {
+        const { agentId, competencyId, payload } = await request.json();
+        const result = await cduEngine.runAgentCompetency(agentId, competencyId, payload);
+        return Response.json(result);
+      } catch (err: any) {
+        return Response.json({ success: false, error: err.message }, { status: 500 });
+      }
+    }
+
     return new Response('not found', { status: 404 })
   },
 })
 
 console.log(`conquest-exchange listening on http://127.0.0.1:${server.port}`)
+
+
+import { CDUCompetencyEngine } from './competency_engine.ts'
+import { ConquestDesignUniversity } from './cdu/university.ts'
+
+const cduEngine = new CDUCompetencyEngine()
+cduEngine.init().catch(() => {})
+const cduUni = new ConquestDesignUniversity()
