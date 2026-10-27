@@ -464,7 +464,8 @@ const server = Bun.serve({
     }
     if (url.pathname === '/cdu/execute-competency' && request.method === 'POST') {
       try {
-        const { agentId, competencyId, payload } = await request.json();
+        const body = await request.json() as any;
+        const { agentId, competencyId, payload } = body;
         const result = await cduEngine.runAgentCompetency(agentId, competencyId, payload);
         return Response.json(result);
       } catch (err: any) {
@@ -480,8 +481,6 @@ console.log(`conquest-exchange listening on http://127.0.0.1:${server.port}`)
 
 
 import { CDUCompetencyEngine } from './competency_engine.ts'
-import { ConquestDesignUniversity } from './cdu/university.ts'
 
 const cduEngine = new CDUCompetencyEngine()
 cduEngine.init().catch(() => {})
-const cduUni = new ConquestDesignUniversity()
